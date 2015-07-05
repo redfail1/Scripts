@@ -31,9 +31,7 @@ function OnLoad()
       Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
 
-PrintChat("<font color=\"#00FF00\">Loaded awesome spell caller!</font>")
-
-customCheck()
+  PrintChat("<font color=\"#00FF00\">Loaded awesome spell caller!</font>")
 end
 
 function OnWndMsg(a, b)
@@ -50,7 +48,6 @@ function TARGB(colorTable)
   do return ARGB(colorTable[1], colorTable[2], colorTable[3], colorTable[4])
   end
 end
-
 
 function replaceSummonerNames(str)
   local newName
@@ -91,8 +88,6 @@ function replaceSummonerNames(str)
   end
 end
 
-
-
 function enableOrDisabled(str)
   local enabledConfig
   if(str ==  "summonerbarrier" and Config.spellcsettings.enableBarrier) then
@@ -126,13 +121,6 @@ function enableOrDisabled(str)
   end
 end
 
-
-function customCheck()
-  for _, enemy in pairs(enemyHeroes) do
-    PrintChat(enemy.charName .. " SUMMONER_1 : ".. tostring(enemy:GetSpellData(SUMMONER_1).currentCd).. " SUMMONER_2 :" .. tostring(enemy:GetSpellData(SUMMONER_2).currentCd))
-  end
-end
-
 function OnDraw()
   local heightForName = 100
   
@@ -163,8 +151,7 @@ function OnDraw()
   end
 end
 
--- Credit to Sida for this
--- Contains dirty fix.. dind't know how to fix else
+-- Contains dirty fix.. dind't know how to fix it :D
 local lastPrintSum1, lastHeroSum1, lastHeroName1 = "", "", ""
 function debugPrintSum1(str, enemy)
    if str ~= lastPrintSum1 and lastHeroSum1 ~= enemy:GetSpellData(SUMMONER_2).name and lastHeroName1 ~= enemy.charName then
@@ -186,4 +173,3 @@ function debugPrintSum2(str, enemy)
       DelayAction(function() lastHeroSum2 = "empty" lastHeroName2 = "empty" end, 20)
    end
 end
-
