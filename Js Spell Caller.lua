@@ -31,7 +31,7 @@ function OnLoad()
       Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
 
-  PrintChat("<font color=\"#00FF00\">Loaded awesome spell caller!</font>")
+    PrintChat("<font color=\"#00FF00\">Loaded awesome spell caller!</font>")
 end
 
 function OnWndMsg(a, b)
@@ -125,9 +125,7 @@ function OnDraw()
   local heightForName = 100
   
   for _, enemy in pairs(enemyHeroes) do
-
     heightForName = heightForName + 30
-
     if ((enemy:GetSpellData(SUMMONER_2).cd - Config.miscsettings.drawTime)  < enemy:GetSpellData(SUMMONER_2).currentCd ) and enemy:GetSpellData(SUMMONER_2).currentCd > 0 and Config.miscsettings.enableScript then
       if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_2).name)) == true) then
         local cooldownToMinutes = os.date("!%X",GetInGameTimer() + enemy:GetSpellData(SUMMONER_2).cd)
