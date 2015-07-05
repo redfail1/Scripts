@@ -1,8 +1,14 @@
-local allyHeroes, enemyHeroes = GetAllyHeroes(), GetEnemyHeroes()
+local enemyHeroes = GetEnemyHeroes()
+local REVISION = 1
 
 function OnLoad()
+  local latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/version.rev"))
 
-  Config = scriptConfig("J's spell caller", "spellcaller")
+  if latest > REVISION then
+    PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
+  end
+
+  Config = scriptConfig("J's awesome spell caller", "spellcaller (V. " .. REVISION .. " ")
     Config:addSubMenu("Misc", "miscsettings")
       Config.miscsettings:addParam("enableScript", "Enable script", SCRIPT_PARAM_ONOFF, true)
       Config.miscsettings:addParam("drawScreen", "Draw on screen", SCRIPT_PARAM_ONOFF, true)
@@ -22,9 +28,22 @@ function OnLoad()
       Config.spellcsettings:addParam("enableMark", "Mark", SCRIPT_PARAM_ONOFF, true)
       Config.spellcsettings:addParam("enableTeleport", "Teleport", SCRIPT_PARAM_ONOFF, true)
 
-PrintChat("<font color=\"#00FF00\">Succesfully loaded Brain.lua</font>")
+      Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config.updateScript = false
+
+PrintChat("<font color=\"#00FF00\">Loaded awesome spell caller!</font>")
 
 customCheck()
+end
+
+function OnWndMsg(a, b)
+  if a == WM_LBUTTONUP and Config.updateScript then
+    Config.updateScript = false
+    PrintChat("<font color=\"#FF0000\">Updating...</font>")
+    DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/Js%20Spell%20Caller.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, function()
+      PrintChat("<font color=\"#00FF00\">Update finished Please reload double tap F9.</font>")
+    end)
+  end
 end
 
 function TARGB(colorTable) 
