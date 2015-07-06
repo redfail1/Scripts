@@ -156,7 +156,7 @@ function OnDraw()
   end
 end
 
--- Contains dirty fix.. dind't know how to fix it :D
+-- Contains dirty fix.. didn't know how to fix it :D
 local lastPrintSum1, lastHeroSum1, lastHeroName1 = "", "", ""
 function debugPrintSum1(str, enemy)
    if str ~= lastPrintSum1 and lastHeroSum1 ~= enemy:GetSpellData(SUMMONER_2).name and lastHeroName1 ~= enemy.charName then
