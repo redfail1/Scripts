@@ -6,7 +6,7 @@
 --  \____/ \__,_|___/\__|_| |_|_|_| |_|_|\___/ 
 
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 1
+local REVISION = 2
 
 function OnLoad()
   local latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/version.rev"))
@@ -18,6 +18,8 @@ function OnLoad()
   Config = scriptConfig("J's awesome spell caller", "spellcaller (V. " .. REVISION .. " ")
     Config:addSubMenu("Misc", "miscsettings")
       Config.miscsettings:addParam("enableScript", "Enable script", SCRIPT_PARAM_ONOFF, true)
+      Config.miscsettings:addParam("printInChat", "Show summoner duration", SCRIPT_PARAM_ONOFF, true)
+      Config.miscsettings:addParam("showWhenUp", "Notify when summoner is almost up", SCRIPT_PARAM_ONOFF, true)
       Config.miscsettings:addParam("drawScreen", "Draw on screen", SCRIPT_PARAM_ONOFF, true)
       Config.miscsettings:addParam("drawTime", "Draw time on screen", SCRIPT_PARAM_SLICE, 5, 1, 10, 0)
       Config.miscsettings:addParam("drawColor", "Draw color", SCRIPT_PARAM_COLOR, {255,255,0,0}) --{A,R,G,B}
@@ -34,6 +36,7 @@ function OnLoad()
       Config.spellcsettings:addParam("enableClarity", "Clarity", SCRIPT_PARAM_ONOFF, true)
       Config.spellcsettings:addParam("enableMark", "Mark", SCRIPT_PARAM_ONOFF, true)
       Config.spellcsettings:addParam("enableTeleport", "Teleport", SCRIPT_PARAM_ONOFF, true)
+      Config.spellcsettings:addParam("enableClairvoyance", "Clairvoyance", SCRIPT_PARAM_ONOFF, true)
 
       Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
@@ -88,6 +91,8 @@ function replaceSummonerNames(str)
     newName = "Mark"
     elseif str == "summonerteleport" then
     newName = "Teleport"
+    elseif str == "summonerclairvoyance" then
+    newName = "Clairvoyance"
   else
     newName = "Unknown spell"
   end
@@ -121,6 +126,8 @@ function enableOrDisabled(str)
         enabledConfig = true        
       elseif(str ==  "summonerteleport" and Config.spellcsettings.enableTeleport) then
         enabledConfig = true   
+      elseif(str ==  "summonerclairvoyance" and Config.spellcsettings.enableClairvoyance) then
+        enabledConfig = true   
       else 
         enabledConfig = false
       end
@@ -133,11 +140,49 @@ function OnDraw()
   
   for _, enemy in pairs(enemyHeroes) do
     heightForName = heightForName + 30
-    if ((enemy:GetSpellData(SUMMONER_2).cd - Config.miscsettings.drawTime)  < enemy:GetSpellData(SUMMONER_2).currentCd ) and enemy:GetSpellData(SUMMONER_2).currentCd > 0 and Config.miscsettings.enableScript then
+
+    -- This will print the message in chat and will also make sure it doesn't spam the same message over and over.
+    if ((enemy:GetSpellData(SUMMONER_2).cd - 0.5)< enemy:GetSpellData(SUMMONER_2).currentCd ) and enemy:GetSpellData(SUMMONER_2).currentCd > 0 and Config.miscsettings.enableScript then
       if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_2).name)) == true) then
         local cooldownToMinutes = os.date("!%X",GetInGameTimer() + enemy:GetSpellData(SUMMONER_2).cd)
+        if(Config.miscsettings.printInChat) then
+           debugPrintSum2("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_2).name)) ..", it's back up at <font color=\"#00FF00\">" .. cooldownToMinutes .."</font> It's down for " ..  os.date("!%X",enemy:GetSpellData(SUMMONER_2).cd), enemy)
+        else
+          debugPrintSum2("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_2).name)) ..", it's back up at <font color=\"#00FF00\">" .. cooldownToMinutes .."</font>", enemy)
+        end
+      end
+    end
+    if ((enemy:GetSpellData(SUMMONER_1).cd - 0.5) < enemy:GetSpellData(SUMMONER_1).currentCd ) and enemy:GetSpellData(SUMMONER_1).currentCd > 0 and Config.miscsettings.enableScript then
+      if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_1).name)) == true) then
+        local cooldownToMinutes = os.date("!%X",GetInGameTimer() + enemy:GetSpellData(SUMMONER_1).cd)
+        if(Config.miscsettings.printInChat) then
+          debugPrintSum1("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_1).name)) ..", it's back up at <font color=\"#00FF00\">" .. cooldownToMinutes .."</font> It's down for " ..  os.date("!%X",enemy:GetSpellData(SUMMONER_1).cd), enemy)
+        else
+          debugPrintSum1("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_1).name)) ..", it's back up at <font color=\"#00FF00\">" .. cooldownToMinutes .."</font>", enemy)
+        end
+      end
+    end
+    -- This will notify when summoner is almost up
+    if enemy:GetSpellData(SUMMONER_2).currentCd > 1 and enemy:GetSpellData(SUMMONER_2).currentCd < (Config.miscsettings.drawTime + 1) and enemy:GetSpellData(SUMMONER_2).currentCd > 0 and Config.miscsettings.enableScript and Config.miscsettings.showWhenUp then
+     if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_2).name)) == true) then
+        heightForName = heightForName + 30  
+        if(Config.miscsettings.drawScreen) then
+          DrawText(enemy.charName .. "'s " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_2).name)) .." up in " .. math.round(enemy:GetSpellData(SUMMONER_2).currentCd, 1), 26, 150, heightForName, TARGB(Config.miscsettings.drawColor))
+        end
+      end
+    end
+    if enemy:GetSpellData(SUMMONER_1).currentCd > 1 and enemy:GetSpellData(SUMMONER_1).currentCd < (Config.miscsettings.drawTime + 1) and enemy:GetSpellData(SUMMONER_1).currentCd > 0 and Config.miscsettings.enableScript and Config.miscsettings.showWhenUp then
+     if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_1).name)) == true) then
+        heightForName = heightForName + 30  
+        if(Config.miscsettings.drawScreen) then
+          DrawText(enemy.charName .. "'s " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_1).name)) .." up in " .. math.round(enemy:GetSpellData(SUMMONER_1).currentCd, 1), 26, 150, heightForName, TARGB(Config.miscsettings.drawColor))
+        end
+      end
+    end
+    -- This will draw the message on your screen for however long the user set the delay.
+    if ((enemy:GetSpellData(SUMMONER_2).cd - Config.miscsettings.drawTime)  < enemy:GetSpellData(SUMMONER_2).currentCd ) and enemy:GetSpellData(SUMMONER_2).currentCd > 0 and Config.miscsettings.enableScript then
+      if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_2).name)) == true) then
         heightForName = heightForName + 30
-        debugPrintSum2("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_2).name)) ..", it's back up at <font color=\"#00FF00\">" .. cooldownToMinutes .."</font>", enemy)
         if(Config.miscsettings.drawScreen) then
           DrawText(enemy.charName .. " used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_2).name)) .."" , 26, 150, heightForName, TARGB(Config.miscsettings.drawColor))
         end
@@ -145,9 +190,7 @@ function OnDraw()
     end
     if ((enemy:GetSpellData(SUMMONER_1).cd - Config.miscsettings.drawTime)  < enemy:GetSpellData(SUMMONER_1).currentCd ) and enemy:GetSpellData(SUMMONER_1).currentCd > 0 and Config.miscsettings.enableScript then
       if(enableOrDisabled(tostring(enemy:GetSpellData(SUMMONER_1).name)) == true) then
-        local cooldownToMinutes = os.date("!%X",GetInGameTimer() + enemy:GetSpellData(SUMMONER_1).cd)
         heightForName = heightForName + 30
-        debugPrintSum1("<font color=\"#FFFFFF\">" .. enemy.charName .. "</font> used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_1).name)) ..", it's back up at  <font color=\"#00FF00\">" .. cooldownToMinutes .."</font>", enemy)
         if(Config.miscsettings.drawScreen) then
           DrawText(enemy.charName .. " used " .. replaceSummonerNames(tostring(enemy:GetSpellData(SUMMONER_1).name)) .."" , 26, 150, heightForName, TARGB(Config.miscsettings.drawColor))
         end
@@ -156,7 +199,7 @@ function OnDraw()
   end
 end
 
--- Contains dirty fix.. didn't know how to fix it :D
+-- This will make sure the message wont get spammed
 local lastPrintSum1, lastHeroSum1, lastHeroName1 = "", "", ""
 function debugPrintSum1(str, enemy)
    if str ~= lastPrintSum1 and lastHeroSum1 ~= enemy:GetSpellData(SUMMONER_2).name and lastHeroName1 ~= enemy.charName then
@@ -164,7 +207,7 @@ function debugPrintSum1(str, enemy)
       lastPrintSum1 = str
       lastHeroSum1 = enemy:GetSpellData(SUMMONER_1).name
       lastHeroName1 = enemy.charName
-      DelayAction(function() lastHeroSum1 = "empty" lastHeroName1 = "empty" end, 20)
+      DelayAction(function() lastHeroSum1 = "empty" lastHeroName1 = "empty" end, 10)
    end
 end
 
@@ -175,6 +218,6 @@ function debugPrintSum2(str, enemy)
       lastPrintSum2 = str
       lastHeroSum2 = enemy:GetSpellData(SUMMONER_1).name
       lastHeroName2 = enemy.charName
-      DelayAction(function() lastHeroSum2 = "empty" lastHeroName2 = "empty" end, 20)
+      DelayAction(function() lastHeroSum2 = "empty" lastHeroName2 = "empty" end, 10)
    end
 end
