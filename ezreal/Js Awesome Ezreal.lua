@@ -32,6 +32,12 @@ function OnLoad()
 
   -- Creating the config menu + seting up Vpredition and loading the orbwalkers
   createMenu()
+
+  -- Update Stuff
+  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+  Config.updateScript = false
+
+  -- Other stuff
   VP = VPrediction()
   HPred = HPrediction()
   loadOrbWalkers()
@@ -121,10 +127,6 @@ function createMenu()
   Config.miscSettings:addParam("RmaxRange", "Max range for (global) R", SCRIPT_PARAM_SLICE, 2500, 200, 15000, 0)
   Config.miscSettings:addParam("ROverkill", "R overkill damage", SCRIPT_PARAM_SLICE, 50, 1, 200, 0)
   Config.miscSettings:addParam("RhitChance", "R hit chance (2) recommended", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-
-  -- Update Stuff
-  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
-  Config.updateScript = false
 end
 
 -- Loading skill data
