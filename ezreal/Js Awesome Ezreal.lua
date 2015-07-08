@@ -30,17 +30,15 @@ function OnLoad()
   -- Setting target selector name
   ts.name = "Target selector"
 
-  -- Creating the config menu + seting up Vpredition and loading the orbwalkers
-  createMenu()
-
-  -- Update Stuff
-  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
-  Config.updateScript = false
+  
 
   -- Other stuff
   VP = VPrediction()
   HPred = HPrediction()
   loadOrbWalkers()
+
+  -- Creating the config menu + seting up Vpredition and loading the orbwalkers
+  createMenu()
 
   PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">Successfully</font> <font color = \"#FFFFFF\">loaded.</font> </font>")
 end
@@ -69,15 +67,23 @@ function OnTick()
   end
 end
 
+-- Somehow adding orbwalker menu after this will make auto update
+function addUpdateMenu()
+    -- Update Stuff
+    Config:addParam("writtenBy","Made by Justh1n10", 5, "")
+    Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config.updateScript = false
+end
+
  -- Orbwalker loading Selection
 function loadOrbWalkers()
  if _G.Reborn_Loaded then
     DelayAction(function()
     PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">SAC Status:</font> <font color = \"#FFFFFF\">Successfully integrated.</font> </font>")
       PrintChat("<font color = \"#FFFFFF\">>> Recommended ult range << </font><font color = \"#FF0000\">3000</font> <font color = \"#FFFFFF\">during laning phase!</font> (Killsteal menu) </font>")
-
     Config:addParam("SACON","SAC:R support is active.", 5, "")
      isSAC = true
+    addUpdateMenu() -- For some reason adding it here stops it from updating over and over
   end, 10)
   
     elseif not _G.Reborn_Loaded then
@@ -87,6 +93,7 @@ function loadOrbWalkers()
   Config:addSubMenu("Orbwalker", "SxOrb")
   SxOrb:LoadToMenu(Config.SxOrb)
   isSX = true
+  addUpdateMenu() -- For some reason adding it here stops it from updating over and over
     end
 end
 
