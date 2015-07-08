@@ -124,7 +124,7 @@ function createMenu()
   Config.miscSettings:addParam("Pred", "HPred ON/ VPred Off", SCRIPT_PARAM_ONOFF, true)
   Config.miscSettings:addParam("RmaxRange", "Max range for (global) R", SCRIPT_PARAM_SLICE, 2500, 200, 15000, 0)
   Config.miscSettings:addParam("ROverkill", "R overkill damage", SCRIPT_PARAM_SLICE, 50, 1, 200, 0)
-  Config.miscSettings:addParam("RhitChance", "R hit chance", SCRIPT_PARAM_SLICE, 2, 1, 5, 0)
+  Config.miscSettings:addParam("RhitChance", "R hit chance", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
 
 end
 
