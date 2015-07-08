@@ -4,6 +4,7 @@
 --  _   | | | | / __| __| '_ \| | '_ \| | | | |
 -- | |__| | |_| \__ \ |_| | | | | | | | | |_| |
 --  \____/ \__,_|___/\__|_| |_|_|_| |_|_|\___/ 
+-- Js Awesome Ezreal!
 
 if myHero.charName ~= "Ezreal" then return end
 require "SxOrbWalk"
@@ -13,13 +14,13 @@ local enemyHeroes = GetEnemyHeroes()
 local REVISION = 1
 
 function OnLoad()
-  --local latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/version.rev"))
+  local latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
 
-  --if latest > REVISION then
-  --  PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
-  --end
-  -- Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
-  -- Config.updateScript = false
+  if latest > REVISION then
+    PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
+  end
+  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+  Config.updateScript = false
 
 
   -- Target selectors
@@ -108,7 +109,6 @@ function createMenu()
   Config.harassSettingsMenu:addParam("harassToggle", "Harass Toggle", SCRIPT_PARAM_ONOFF, false)
   Config.harassSettingsMenu:addParam("useQ", "Use Q", SCRIPT_PARAM_ONOFF, true)
   Config.harassSettingsMenu:addParam("useW", "Use W", SCRIPT_PARAM_ONOFF, true)
-  --Config.harassSettingsMenu:addParam("manaManager", "Min % Mana To Harass", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
   Config.harassSettingsMenu:permaShow("harassToggle")
 
   -- Misc settings
@@ -149,15 +149,16 @@ function IgniteCheck()
  end
 end
 
---function OnWndMsg(a, b)
---  if a == WM_LBUTTONUP and Config.updateScript then
---    Config.updateScript = false
---    PrintChat("<font color=\"#FF0000\">Updating...</font>")
---    DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/Js%20Spell%20Caller.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, function()
---      PrintChat("<font color=\"#00FF00\">Update finished Please reload double tap F9.</font>")
---    end)
---  end
---end
+-- For updating
+function OnWndMsg(a, b)
+  if a == WM_LBUTTONUP and Config.updateScript then
+    Config.updateScript = false
+    PrintChat("<font color=\"#FF0000\">Updating...</font>")
+    DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/ezreal/Js%20Awesome%20Ezreal.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, function()
+      PrintChat("<font color=\"#00FF00\">Update finished Please reload double tap F9.</font>")
+    end)
+  end
+end
 
 -- Converting SCRIPT_PARAM_COLOR
 function TARGB(colorTable) 
