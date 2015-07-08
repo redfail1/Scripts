@@ -20,11 +20,9 @@ function OnLoad()
     PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
   end
 
-
   -- Target selectors
   ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1150)
   
-
   -- Loading skill data + checking if have Ignite
   LoadSkills()
   IgniteCheck()
@@ -118,7 +116,7 @@ function createMenu()
   Config.miscSettings:addParam("drawWRange", "Draw W range", SCRIPT_PARAM_ONOFF, true)
   Config.miscSettings:addParam("drawWRangeColor", "W range color", SCRIPT_PARAM_COLOR, {255,75,235,80}) --{A,R,G,B}
   Config.miscSettings:addParam("drawERange", "Draw E range", SCRIPT_PARAM_ONOFF, false)
-  Config.miscSettings:addParam("drawERangeColor", "E range color", SCRIPT_PARAM_COLOR, {255,255,0,0}) --{A,R,G,B}\
+  Config.miscSettings:addParam("drawERangeColor", "E range color", SCRIPT_PARAM_COLOR, {255,255,0,0}) --{A,R,G,B}
   Config.miscSettings:addParam("Pred", "HPred ON/ VPred Off", SCRIPT_PARAM_ONOFF, true)
   Config.miscSettings:addParam("RmaxRange", "Max range for (global) R", SCRIPT_PARAM_SLICE, 2500, 200, 15000, 0)
   Config.miscSettings:addParam("ROverkill", "R overkill damage", SCRIPT_PARAM_SLICE, 50, 1, 200, 0)
@@ -127,7 +125,6 @@ function createMenu()
   -- Update Stuff
   Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
   Config.updateScript = false
-
 end
 
 -- Loading skill data
@@ -135,7 +132,6 @@ function LoadSkills()
   SkillQ = { name = "Mystic Shot", range = 1150, delay = 0.25, speed = 2000, width = 60}
   SkillW = { name = "Essence Flux", range = 950, delay = 0.25, speed = 1600, width = 80}
   SkillR = { name = "Trueshot Barrage", range = math.huge, delay = 1.0, speed = 2000, width = 160}
-
 
   HP_Q = HPSkillshot({collisionM = true, collisionH = true, delay = 0.25, range = 1150, speed = 2000, type = "DelayLine", width = 120})
   HP_W = HPSkillshot({collisionM = false, collisionH = false, delay = 0, range = 950, speed = 1600, type = "DelayLine", width = 160})
@@ -168,11 +164,10 @@ function TARGB(colorTable)
   end
 end
 
-
 -- Check / calculations for casting Q
 function CastQ(unit) 
   if myHero.dead then return end
-
+  
     if Config.miscSettings.Pred then
       CastPosition, HitChance = HPred:GetPredict(HP_Q, unit, myHero) -- HPrediction
     else
