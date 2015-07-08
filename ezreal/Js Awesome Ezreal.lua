@@ -4,23 +4,21 @@
 --  _   | | | | / __| __| '_ \| | '_ \| | | | |
 -- | |__| | |_| \__ \ |_| | | | | | | | | |_| |
 --  \____/ \__,_|___/\__|_| |_|_|_| |_|_|\___/ 
--- Js Awesome Ezreal!
+-- Js Awesome Ezreal
 
 if myHero.charName ~= "Ezreal" then return end
 require "SxOrbWalk"
 require "VPrediction"
 require "HPrediction"
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 1
+local REVISION = 0
 
 function OnLoad()
-  local latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
+  latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
 
   if latest > REVISION then
     PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
   end
-  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
-  Config.updateScript = false
 
 
   -- Target selectors
@@ -124,7 +122,11 @@ function createMenu()
   Config.miscSettings:addParam("Pred", "HPred ON/ VPred Off", SCRIPT_PARAM_ONOFF, true)
   Config.miscSettings:addParam("RmaxRange", "Max range for (global) R", SCRIPT_PARAM_SLICE, 2500, 200, 15000, 0)
   Config.miscSettings:addParam("ROverkill", "R overkill damage", SCRIPT_PARAM_SLICE, 50, 1, 200, 0)
-  Config.miscSettings:addParam("RhitChance", "R hit chance", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+  Config.miscSettings:addParam("RhitChance", "R hit chance (2) recommended", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
+
+  -- Update Stuff
+  Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+  Config.updateScript = false
 
 end
 
