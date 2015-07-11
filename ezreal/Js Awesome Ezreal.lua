@@ -11,91 +11,35 @@ require "SxOrbWalk"
 require "VPrediction"
 require "HPrediction"
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 1
+local REVISION = 2
 
 function OnLoad()
   latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
+
+  -- Target selectors
+  ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1150)
 
   if latest > REVISION then
     PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
   end
 
-  -- Target selectors
-  ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1150)
-  
+  -- Creating the config menu + seting up Vpredition and loading the orbwalkers
+  createMenu()
+
   -- Loading skill data + checking if have Ignite
   LoadSkills()
   IgniteCheck()
 
   -- Setting target selector name
   ts.name = "Target selector"
-
-  
-
   -- Other stuff
   VP = VPrediction()
   HPred = HPrediction()
   loadOrbWalkers()
 
-  -- Creating the config menu + seting up Vpredition and loading the orbwalkers
-  createMenu()
-
   PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">Successfully</font> <font color = \"#FFFFFF\">loaded.</font> </font>")
 end
 
-function OnTick()
-  -- Updating the target selectors
-  ts:update()
-  tsGlobal = TargetSelector(TARGET_LOW_HP_PRIORITY, Config.miscSettings.RmaxRange)
-  tsGlobal:update()
-
-  -- If you enable global ult
-  if Config.killStealSettingsMenu.useRGlobal and (tsGlobal.target ~= nil) and not tsGlobal.target.dead and tsGlobal.target.bTargetable then
-    castRGlobal(tsGlobal.target)
-  end
-
-  -- If found target check for cast spells
-  if (ts.target ~= nil) and not ts.target.dead and ts.target.bTargetable then
-      CastW(ts.target)
-      CastQ(ts.target)
-
-    --If you enable normal ult
-      if Config.killStealSettingsMenu.useR then
-        CastR(ts.target)
-      end
-    Autoignite(ts.target)
-  end
-end
-
--- Somehow adding orbwalker menu after this will make auto update
-function addUpdateMenu()
-    -- Update Stuff
-    Config:addParam("writtenBy","Made by Justh1n10", 5, "")
-    Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
-    Config.updateScript = false
-end
-
- -- Orbwalker loading Selection
-function loadOrbWalkers()
- if _G.Reborn_Loaded then
-    DelayAction(function()
-    PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">SAC Status:</font> <font color = \"#FFFFFF\">Successfully integrated.</font> </font>")
-      PrintChat("<font color = \"#FFFFFF\">>> Recommended ult range << </font><font color = \"#FF0000\">3000</font> <font color = \"#FFFFFF\">during laning phase!</font> (Killsteal menu) </font>")
-    Config:addParam("SACON","SAC:R support is active.", 5, "")
-     isSAC = true
-    addUpdateMenu() -- For some reason adding it here stops it from updating over and over
-  end, 10)
-  
-    elseif not _G.Reborn_Loaded then
-  PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">Orbwalker not found:</font> <font color = \"#FFFFFF\">SxOrbWalk integrated.</font> </font>")
-    PrintChat("<font color = \"#FFFFFF\">>> Recommended ult range << </font><font color = \"#FF0000\">3000</font> <font color = \"#FFFFFF\">during laning phase!</font> (Killsteal menu) </font>")
-
-  Config:addSubMenu("Orbwalker", "SxOrb")
-  SxOrb:LoadToMenu(Config.SxOrb)
-  isSX = true
-  addUpdateMenu() -- For some reason adding it here stops it from updating over and over
-    end
-end
 
 function createMenu()
   Config = scriptConfig(">> Js Awesome Ezreal <<", "awesomeEzreal")
@@ -135,6 +79,63 @@ function createMenu()
   Config.miscSettings:addParam("ROverkill", "R overkill damage", SCRIPT_PARAM_SLICE, 50, 1, 200, 0)
   Config.miscSettings:addParam("RhitChance", "R hit chance (2) recommended", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
 end
+
+function OnTick()
+  -- Updating the target selectors
+  ts:update()
+  tsGlobal = TargetSelector(TARGET_LOW_HP_PRIORITY, Config.miscSettings.RmaxRange)
+  tsGlobal:update()
+
+  -- If you enable global ult
+  if Config.killStealSettingsMenu.useRGlobal and (tsGlobal.target ~= nil) and not tsGlobal.target.dead and tsGlobal.target.bTargetable then
+    castRGlobal(tsGlobal.target)
+  end
+
+  -- If found target check for cast spells
+  if (ts.target ~= nil) and not ts.target.dead and ts.target.bTargetable then
+      CastW(ts.target)
+      CastQ(ts.target)
+
+    --If you enable normal ult
+      if Config.killStealSettingsMenu.useR then
+        CastR(ts.target)
+      end
+    Autoignite(ts.target)
+  end
+end
+
+function addUpdateMenu()
+    -- Update Stuff
+    Config:addParam("writtenBy","Made by Justh1n10", 5, "")
+    Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config.updateScript = false
+
+end
+
+ -- Orbwalker loading Selection
+function loadOrbWalkers()
+ if _G.Reborn_Loaded then
+    DelayAction(function()
+    PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">SAC Status:</font> <font color = \"#FFFFFF\">Successfully integrated.</font> </font>")
+    PrintChat("<font color = \"#FFFFFF\">>> Recommended ult range << </font><font color = \"#FF0000\">3000</font> <font color = \"#FFFFFF\">during laning phase!</font> (Killsteal menu) </font>")
+    if(Config == nil) then
+      Config:addParam("SACON","SAC:R support is active.", 5, "")
+    end
+     isSAC = true
+    addUpdateMenu() -- For some reason adding it here stops it from updating over and over
+  end, 10)
+  
+    elseif not _G.Reborn_Loaded then
+  PrintChat("<font color = \"#FFFFFF\">>> Awesome Ezreal << </font><font color = \"#FF0000\">Orbwalker not found:</font> <font color = \"#FFFFFF\">SxOrbWalk integrated.</font> </font>")
+    PrintChat("<font color = \"#FFFFFF\">>> Recommended ult range << </font><font color = \"#FF0000\">3000</font> <font color = \"#FFFFFF\">during laning phase!</font> (Killsteal menu) </font>")
+
+  Config:addSubMenu("Orbwalker", "SxOrb")
+  SxOrb:LoadToMenu(Config.SxOrb)
+  isSX = true
+  addUpdateMenu() -- For some reason adding it here stops it from updating over and over
+    end
+end
+
 
 -- Loading skill data
 function LoadSkills()
@@ -266,14 +267,19 @@ end
 
 -- Draws the Q, W and E ranges
 function OnDraw()
+  if(Config == nil) then
+    PrintChat ("nil")
+  else
+    PrintChat ("not nill")
+  end
   if Config.miscSettings.drawQRange and (myHero:CanUseSpell(_Q) == READY) then
     DrawCircle(myHero.x, myHero.y, myHero.z, SkillQ.range, TARGB(Config.miscSettings.drawQRangeColor))
   end
-
+  
   if Config.miscSettings.drawWRange and (myHero:CanUseSpell(_W) == READY) then
     DrawCircle(myHero.x, myHero.y, myHero.z, SkillW.range, TARGB(Config.miscSettings.drawWRangeColor))
   end
-
+  
   if Config.miscSettings.drawERange and (myHero:CanUseSpell(_E) == READY) then
     DrawCircle(myHero.x, myHero.y, myHero.z, SkillE.range, TARGB(Config.miscSettings.drawERangeColor))
   end
