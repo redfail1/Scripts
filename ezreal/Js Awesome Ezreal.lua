@@ -267,11 +267,6 @@ end
 
 -- Draws the Q, W and E ranges
 function OnDraw()
-  if(Config == nil) then
-    PrintChat ("nil")
-  else
-    PrintChat ("not nill")
-  end
   if Config.miscSettings.drawQRange and (myHero:CanUseSpell(_Q) == READY) then
     DrawCircle(myHero.x, myHero.y, myHero.z, SkillQ.range, TARGB(Config.miscSettings.drawQRangeColor))
   end
