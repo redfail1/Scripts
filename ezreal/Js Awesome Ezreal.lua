@@ -11,7 +11,7 @@ require "SxOrbWalk"
 require "VPrediction"
 require "HPrediction"
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 2
+local REVISION = 3
 
 function OnLoad()
   latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
@@ -141,6 +141,7 @@ end
 function LoadSkills()
   SkillQ = { name = "Mystic Shot", range = 1150, delay = 0.25, speed = 2000, width = 60}
   SkillW = { name = "Essence Flux", range = 950, delay = 0.25, speed = 1600, width = 80}
+  SkillE = { name = "Arcane Shift", range = 475}
   SkillR = { name = "Trueshot Barrage", range = math.huge, delay = 1.0, speed = 2000, width = 160}
 
   HP_Q = HPSkillshot({collisionM = true, collisionH = true, delay = 0.25, range = 1150, speed = 2000, type = "DelayLine", width = 120})
