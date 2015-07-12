@@ -107,7 +107,7 @@ end
 function addUpdateMenu()
     -- Update Stuff
     Config:addParam("writtenBy","Made by Justh1n10", 5, "")
-    Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config:addParam(" ", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
 
 end
@@ -187,13 +187,13 @@ function CastQ(unit)
 
     local damageQ = getDmg("Q", unit, myHero) + ((myHero.damage)*1.1) + ((myHero.ap)*0.4)
 
-    if myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and unit.health < damageQ and HitChance >= 1 and Config.killStealSettingsMenu.useQ then
+    if myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and unit.health < damageQ and HitChance >= 2 and Config.killStealSettingsMenu.useQ then
       CastSpell(_Q, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 1 and Config.keySettingsMenu.combo then
+    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 2 and Config.keySettingsMenu.combo then
         CastSpell(_Q, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 1 and Config.keySettingsMenu.harass and Config.harassSettingsMenu.useQ then
+    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 2 and Config.keySettingsMenu.harass and Config.harassSettingsMenu.useQ then
         CastSpell(_Q, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 1 and Config.harassSettingsMenu.harassToggle and Config.harassSettingsMenu.useQ then
+    elseif myHero:CanUseSpell(_Q) and GetDistance(unit) <= SkillQ.range and HitChance >= 2 and Config.harassSettingsMenu.harassToggle and Config.harassSettingsMenu.useQ then
         CastSpell(_Q, CastPosition.x, CastPosition.z)
     end
 end
@@ -210,13 +210,13 @@ function CastW(unit)
 
     local damageW = getDmg("W", unit, myHero) + ((myHero.ap)*0.8)
 
-    if myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and unit.health < damageW and HitChance >= 1 and Config.killStealSettingsMenu.useW then
+    if myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and unit.health < damageW and HitChance >= 2 and Config.killStealSettingsMenu.useW then
       CastSpell(_W, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 1 and Config.keySettingsMenu.combo then
+    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 2 and Config.keySettingsMenu.combo then
         CastSpell(_W, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 1 and Config.keySettingsMenu.harass and Config.harassSettingsMenu.useW then
+    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 2 and Config.keySettingsMenu.harass and Config.harassSettingsMenu.useW then
         CastSpell(_W, CastPosition.x, CastPosition.z)
-    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 1 and Config.harassSettingsMenu.harassToggle and Config.harassSettingsMenu.useW then
+    elseif myHero:CanUseSpell(_W) and GetDistance(unit) <= SkillW.range and HitChance >= 2 and Config.harassSettingsMenu.harassToggle and Config.harassSettingsMenu.useW then
         CastSpell(_W, CastPosition.x, CastPosition.z)
     end
 end
