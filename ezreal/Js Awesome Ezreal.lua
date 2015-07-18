@@ -107,7 +107,7 @@ end
 function addUpdateMenu()
     -- Update Stuff
     Config:addParam("writtenBy","Made by Justh1n10", 5, "")
-    Config:addParam("latestVersion", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config:addParam("updateScript", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
 
 end
