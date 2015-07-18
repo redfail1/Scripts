@@ -11,7 +11,7 @@ require "SxOrbWalk"
 require "VPrediction"
 require "HPrediction"
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 3
+local REVISION = 4
 
 function OnLoad()
   latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
@@ -107,7 +107,7 @@ end
 function addUpdateMenu()
     -- Update Stuff
     Config:addParam("writtenBy","Made by Justh1n10", 5, "")
-    Config:addParam(" ", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
+    Config:addParam("latestVersion", "Update Script (rev. " .. latest .. ")", SCRIPT_PARAM_ONOFF, false)
     Config.updateScript = false
 
 end
