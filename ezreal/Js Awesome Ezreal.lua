@@ -11,13 +11,13 @@ require "SxOrbWalk"
 require "VPrediction"
 require "HPrediction"
 local enemyHeroes = GetEnemyHeroes()
-local REVISION = 4
+local REVISION = 5
 
 function OnLoad()
   latest = tonumber(GetWebResult("raw.github.com", "/justh1n10/Scripts/master/ezreal/version.rev"))
 
   -- Target selectors
-  ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1150)
+  ts = TargetSelector(TARGET_LESS_CAST_PRIORITY, 1150, DAMAGE_PHYSICAL, false)
 
   if latest > REVISION then
     PrintChat("<font color=\"#FFFFFF\">A new update is available. Please update using the menu.</font>")
@@ -83,7 +83,7 @@ end
 function OnTick()
   -- Updating the target selectors
   ts:update()
-  tsGlobal = TargetSelector(TARGET_LOW_HP_PRIORITY, Config.miscSettings.RmaxRange)
+  tsGlobal = TargetSelector(TARGET_LOW_HP_PRIORITY, Config.miscSettings.RmaxRange, DAMAGE_PHYSICAL, false)
   tsGlobal:update()
 
   -- If you enable global ult
@@ -93,8 +93,8 @@ function OnTick()
 
   -- If found target check for cast spells
   if (ts.target ~= nil) and not ts.target.dead and ts.target.bTargetable then
-      CastW(ts.target)
       CastQ(ts.target)
+      CastW(ts.target)
 
     --If you enable normal ult
       if Config.killStealSettingsMenu.useR then
@@ -145,7 +145,7 @@ function LoadSkills()
   SkillR = { name = "Trueshot Barrage", range = math.huge, delay = 1.0, speed = 2000, width = 160}
 
   HP_Q = HPSkillshot({collisionM = true, collisionH = true, delay = 0.25, range = 1150, speed = 2000, type = "DelayLine", width = 120})
-  HP_W = HPSkillshot({collisionM = false, collisionH = false, delay = 0, range = 950, speed = 1600, type = "DelayLine", width = 160})
+  HP_W = HPSkillshot({collisionM = false, collisionH = false, delay = 0.25, range = 950, speed = 1600, type = "DelayLine", width = 160})
   HP_R = HPSkillshot({collisionM = false, collisionH = false, delay = 0, range = 20000, speed = 2000, type = "DelayLine", width = 320})
 end
 
