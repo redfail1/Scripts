@@ -62,7 +62,7 @@ function autoUpdate()
 	ToUpdate.UseHttps = true
 	ToUpdate.Host = "raw.githubusercontent.com"
 	ToUpdate.VersionPath = "/justh1n10/Scripts/master/zAwareness/ultHelper.version"
-	ToUpdate.ScriptPath =  "/justh1n10/Scripts/blob/master/zAwareness/zAwareness.lua"
+	ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/zAwareness/zAwareness.lua"
 	ToUpdate.SavePath = SCRIPT_PATH.."/zawareness.lua"
 	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) printMsg("Updated to "..NewVersion..".") end
 	ToUpdate.CallbackNoUpdate = function(OldVersion) printMsg("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
