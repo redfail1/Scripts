@@ -58,7 +58,7 @@ end
 
 function autoUpdate()
 	local ToUpdate = {}
-	ToUpdate.Version = 1.0
+	ToUpdate.Version = 1.1
 	ToUpdate.UseHttps = true
 	ToUpdate.Host = "raw.githubusercontent.com"
 	ToUpdate.VersionPath = "/justh1n10/Scripts/master/zAwareness/ultHelper.version"
@@ -153,7 +153,6 @@ function OnLoad()
 			for j, health in ipairs(tHealth) do
 				if tow.type == "obj_AI_Turret" and not string.find(tow.name, "TurretShrine") then
 					table.insert(towers, tow)
-					break
 				end
 			end
 		end
@@ -640,15 +639,19 @@ function drawLastHit()
 end
 
 function drawTowersRange()
-	for i, tow in ipairs(towers) do
-		if tow.health >  0 and myHero:GetDistance(tow) <= tRange+1000 then
+	for i, tow in pairs(towers) do
+		if tow.health > 0 and GetDistance(tow) <= tRange+1000 then
 			DrawCircle(tow.x, tow.y, tow.z, tRange, RGB(80, 0, 0))
 		end
 	end
 end
 
+_G.DrawCircle = function(x,y,z,r,c)
+	DrawCircle3D(x,y,z,r,3,c,32)
+end
+
 function drawTowersTarget()
-	for i, tow in ipairs(towers) do
+	for i, tow in pairs(towers) do
 		if tow.health > 0 and tUnit[i] ~= nil and tSpell[i] ~= nil and tSpell[i].target ~= nil and tSpell[i].target.type == myHero.type and (not tSpell[i].target.dead) then
 			local targ = tSpell[i].target
 			if tow:GetDistance(targ) <= tRange then
