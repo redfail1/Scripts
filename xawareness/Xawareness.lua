@@ -16,6 +16,7 @@ local allyCount
 local heroSprites = {}
 local summonerSprites = {}
 local frameSprites = {}
+local updated = false
 
 -- math
 local ceil = math.ceil
@@ -24,19 +25,35 @@ local ceil = math.ceil
 function Class(name)
 	_ENV[name] = {}
 	_ENV[name].__index = _ENV[name]
-	local mt = {  __call = function(self, ...) local b = {} setmetatable(b, _ENV[name]) b:__init(b,...) return b end }
+	local mt = {  __call = function(self, ...) local b = {} setmetatable(b, _ENV[name]) b:__init(...) return b end }
 	setmetatable(_ENV[name], mt)
 end
 
 function OnLoad()
-    autoUpdate()
+    local ToUpdate = {}
+    ToUpdate.Version = 1.0
+    ToUpdate.UseHttps = true
+    ToUpdate.Host = "raw.githubusercontent.com"
+    ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
+    ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
+    ToUpdate.SavePath = SCRIPT_PATH.."/xawareness.lua"
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Updated to "..NewVersion..".") end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("New Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
+    ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+    ActualOnLoad()
+end
+
+function ActualOnLoad()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
-	_Tech:LoadSprites()
-	_Tech:LoadMenu()
+    _Tech:LoadSprites()
+    _Tech:LoadMenu()
 end
 
 function OnDraw()
+    if not _Tech.Conf or not updated then return end
 	if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
 	if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
 end
@@ -105,27 +122,66 @@ function _Tech:RenameSums(str)
 end
 
 function _Tech:LoadSprites()
+    for _, k in pairs({"", "Hero_round", "Hero_round_grey", "others", "Summoner_spells"}) do
+        if not DirectoryExist(SPRITE_PATH.."Xawareness//"..k) then
+            CreateDirectory(SPRITE_PATH.."Xawareness//"..k)
+        end
+    end
+
 	self:ImportHeroSprites()
+    self:LoadOtherSprites()
+end
+
+function _Tech:LoadOtherSprites()
     -- Load frame
     for i=1, 7 do -- We have 7 sprites so we run it 7 times
-    	table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
+        if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
+    	    table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 7 ")
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.05) end)
+            frameSprites = {}
+            return;
+        end
     end
 
     -- Load summoner spell icons
     for i=1, 18 do -- We have 18 sprites so we run it 18 times
-    	table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
+        if FileExist(SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png") then
+            table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.05) end)
+            summonerSprites = {}
+            return;
+        end
     end
+    updated = true
 end
 
 function _Tech:ImportHeroSprites()
 	-- Import hero color icons
 	for i,v in pairs(enemyHeroes) do
-		table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round\\" .. v.charName .. ".png"))
+        if FileExist(SPRITE_PATH.."Xawareness//Hero_round//"..v.charName ..".png") then
+            table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round\\" .. v.charName .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Hero_round ".. v.charName)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.05) end)
+            heroSprites = {}
+            return;
+        end
 	end
 
 	-- imports hero grey icons
 	for i,v in pairs(enemyHeroes) do
-		table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round_grey\\" .. v.charName .. ".png"))
+        if FileExist(SPRITE_PATH.."Xawareness//Hero_round_grey//"..v.charName ..".png") then
+            table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round_grey\\" .. v.charName .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Hero_round_grey ".. v.charName)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round_grey/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round_grey//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.05) end)
+            heroSprites = {}
+            return;
+        end
 	end
 end
 
@@ -277,25 +333,9 @@ function _Draw:newHPBar()
 	end
 end
 
-
-function autoUpdate()
-    local ToUpdate = {}
-    ToUpdate.Version = 1.0
-    ToUpdate.UseHttps = true
-    ToUpdate.Host = "raw.githubusercontent.com"
-    ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
-    ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
-    ToUpdate.SavePath = SCRIPT_PATH.."/Xawareness.lua"
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) printMsg("Updated to "..NewVersion..".") end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) printMsg("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
-    ToUpdate.CallbackNewVersion = function(NewVersion) printMsg("New Version found ("..NewVersion.."). Please wait until its downloaded") end
-    ToUpdate.CallbackError = function(NewVersion) printMsg("Error while Downloading. Please try again.") end
-    ScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
-end
-
 -- Auto update stuff made by Aroc
 Class("ScriptUpdate")
-function ScriptUpdate:__init(LocalVersion,UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
+function ScriptUpdate:__init(LocalVersion, UseHttps, Host, VersionPath, ScriptPath, SavePath, CallbackUpdate, CallbackNoUpdate, CallbackNewVersion,CallbackError)
     self.LocalVersion = LocalVersion
     self.Host = Host
     self.VersionPath = '/BoL/TCPUpdater/GetScript'..(UseHttps and '5' or '6')..'.php?script='..self:Base64Encode(self.Host..VersionPath)..'&rand='..math.random(99999999)
