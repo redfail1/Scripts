@@ -29,9 +29,19 @@ function Class(name)
 	setmetatable(_ENV[name], mt)
 end
 
-function OnLoad()
+DelayAction(function() if not _G.XawarenessLoaded then Xawareness() end end, 0.05)
+
+class "Xawareness"
+function Xawareness:__init()
+    _G.XawarenessLoaded = true
+    self:Load()
+    AddDrawCallback(function() self:Draw() end)
+    AddUnloadCallback(function() self:Unload() end)
+end
+
+function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.0
+    ToUpdate.Version = 1.02
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -42,23 +52,25 @@ function OnLoad()
     ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("New Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
-    ActualOnLoad()
+    ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+    self:ActualOnLoad()
 end
 
-function ActualOnLoad()
+function Xawareness:ActualOnLoad()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
     _Tech:LoadSprites()
     _Tech:LoadMenu()
 end
 
-function OnDraw()
+function Xawareness:Draw()
     if not _Tech.Conf or not updated then return end
 	if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
 	if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
+	if _Tech.Conf.enemyPath.showPath then _Draw:EnemyPath() end
 end
 
-function OnUnload()
+function Xawareness:Unload()
 	for i=1, #summonerSprites do
 		summonerSprites[i]:Release();
 	end
@@ -80,13 +92,19 @@ function _Tech:LoadMenu()
 	self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
 	self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
 	self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
+    self.Conf.HUDSettings:addParam("invertImage", "Invert HUD", SCRIPT_PARAM_ONOFF, false)
 	self.Conf.HUDSettings:addParam("empty","", 5, "")
 	self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
 
 	self.Conf:addSubMenu("[XiviAwareness] HP Bar", "hpSettings")
 	self.Conf.hpSettings:addParam("drawHP", "Show cooldowns", SCRIPT_PARAM_ONOFF, true)
     self.Conf.hpSettings:addParam("drawAlly", "Show ally cooldowns", SCRIPT_PARAM_ONOFF, true)
-	self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, true)
+	self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
+
+    self.Conf:addSubMenu("[XiviAwareness] Enemy waypoint", "enemyPath")
+    self.Conf.enemyPath:addParam("showPath", "Show enemy waypoints", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.enemyPath:addParam("showTime", "Show time to reach waypoint", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.enemyPath:addParam("showTriangle", "Show triangle", SCRIPT_PARAM_ONOFF, true)
 
 	self.Conf:addParam("Info","Written by Xivia", 5, "")
 
@@ -190,17 +208,22 @@ function _Tech:GetAbilityFramePos(unit)
     local barPos = GetUnitHPBarPos(unit)
     local barOffset = GetUnitHPBarOffset(unit)
 
-    do -- For some reason the x offset never exists
+    do -- For some reason the x and y offset never exists
         local t = {
             ["Darius"] = -0.05,
             ["Renekton"] = -0.05,
             ["Sion"] = -0.05,
-            ["Thresh"] = 0.03,
+            ["Thresh"] = -0.03,
         }
-        barOffset.x = t[unit.charName] or 0
+        barOffset.x = t[unit.charName] or barOffset.x
+
+        local r ={
+            ["XinZhao"] = 1,
+        }
+        barOffset.y = r[unit.charName] or barOffset.y
     end
 
-    return Point(barPos.x - 69 + barOffset.x * 150, barPos.y + barOffset.y * 50 + 12.5)
+    return D3DXVECTOR2(barPos.x + barOffset.x * 150 - 70, barPos.y + barOffset.y * 50 + 13)
 end
 
 Class("_Draw")
@@ -313,7 +336,6 @@ function _Draw:newHPBar()
 				end
 
 				frameSprites[6]:Draw(framePos.x, framePos.y, 255)
-
 				for i=0, 3 do
                     local spell = unit:GetSpellData(i)
                     local ccd = spell.currentCd
@@ -331,6 +353,32 @@ function _Draw:newHPBar()
 			end
 		end
 	end
+end
+
+function _Draw:EnemyPath()
+    for i = 1, #enemyHeroes do
+        local unit = enemyHeroes[i]
+        if unit and not unit.dead and unit.visible and unit.hasMovePath and unit.path.count > 1 then
+            local path = unit.path:Path(2)
+            local endLinePosition = WorldToScreen(D3DXVECTOR3(path.x, path.y, path.z))
+            if OnScreen(endLinePosition.x, endLinePosition.y) then
+                local unitPing = unit.ms
+                local distance = GetDistance(unit, path)
+
+                DrawLine3D(unit.x, unit.y, unit.z, path.x, path.y, path.z, 3, 0xFFCCFFF6)
+                if _Tech.Conf.enemyPath.showTriangle then
+                    DrawCircle3D(path.x, path.y, path.z, 20, 2, 0xFFCCFFF6, 3)
+                end
+
+                if _Tech.Conf.enemyPath.showTime then
+                    local delay = ceil(distance / unitPing, 2)
+                    DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+                else
+                    DrawText(unit.charName.."", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+                end
+            end
+        end
+    end
 end
 
 -- Auto update stuff made by Aroc
