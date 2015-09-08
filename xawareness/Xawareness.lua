@@ -32,7 +32,9 @@ end
 DelayAction(function() if not _G.XawarenessLoaded then Xawareness() end end, 0.05)
 
 class "Xawareness"
-function Xawareness:__init()
+function Xawareness:__init(cfg)
+    if _G.XawarenessLoaded then return end
+    _G.givenConfig = cfg
     _G.XawarenessLoaded = true
     self:Load()
     AddDrawCallback(function() self:Draw() end)
@@ -41,7 +43,7 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.02
+    ToUpdate.Version = 1.03
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -51,11 +53,10 @@ function Xawareness:Load()
     ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
     ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("New Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
-    ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+    ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, function() end,function() end, function() end,function() end)
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
     self:ActualOnLoad()
 end
-
 function Xawareness:ActualOnLoad()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
@@ -65,9 +66,15 @@ end
 
 function Xawareness:Draw()
     if not _Tech.Conf or not updated then return end
-	if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
 	if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
-	if _Tech.Conf.enemyPath.showPath then _Draw:EnemyPath() end
+    if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
+
+
+    for i = 1, #enemyHeroes do
+        local unit = enemyHeroes[i]
+        if _Tech.Conf.enemyPath.showPath then _Draw:EnemyPath(unit) end
+        if _Tech.Conf.GAlertSettings.GankAlertOn then _Draw:GankAlert(unit, i) end
+    end
 end
 
 function Xawareness:Unload()
@@ -86,25 +93,35 @@ end
 
 Class("_Tech")
 function _Tech:LoadMenu()
-	self.Conf = scriptConfig("[XiviAwareness]", "AwarenessMenu")
+	self.Conf = givenConfig or scriptConfig("[XiviAwareness]", "AwarenessMenu")
 	
-	self.Conf:addSubMenu("[XiviAwareness] HUD", "HUDSettings")
+	self.Conf:addSubMenu("> HUD", "HUDSettings")
 	self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
 	self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
 	self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
-    self.Conf.HUDSettings:addParam("invertImage", "Invert HUD", SCRIPT_PARAM_ONOFF, false)
+    --TODO self.Conf.HUDSettings:addParam("invertImage", "Invert HUD (WIP)", SCRIPT_PARAM_ONOFF, false)
 	self.Conf.HUDSettings:addParam("empty","", 5, "")
 	self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
 
-	self.Conf:addSubMenu("[XiviAwareness] HP Bar", "hpSettings")
+	self.Conf:addSubMenu("> HP Bar", "hpSettings")
 	self.Conf.hpSettings:addParam("drawHP", "Show cooldowns", SCRIPT_PARAM_ONOFF, true)
     self.Conf.hpSettings:addParam("drawAlly", "Show ally cooldowns", SCRIPT_PARAM_ONOFF, true)
 	self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
 
-    self.Conf:addSubMenu("[XiviAwareness] Enemy waypoint", "enemyPath")
+    self.Conf:addSubMenu("> Enemy waypoint", "enemyPath")
     self.Conf.enemyPath:addParam("showPath", "Show enemy waypoints", SCRIPT_PARAM_ONOFF, true)
     self.Conf.enemyPath:addParam("showTime", "Show time to reach waypoint", SCRIPT_PARAM_ONOFF, true)
     self.Conf.enemyPath:addParam("showTriangle", "Show triangle", SCRIPT_PARAM_ONOFF, true)
+
+    self.Conf:addSubMenu("> Gank alert", "GAlertSettings")
+    self.Conf.GAlertSettings:addParam("GankAlertOn", "Gank alert", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.GAlertSettings:addParam("GankAlertDistance", "Maximal detection radius", SCRIPT_PARAM_SLICE , 3600, 500, 10000, 0)
+    self.Conf.GAlertSettings:addParam("GankAlertMinDistance", "Minimal detection radius", SCRIPT_PARAM_SLICE , 600, 300, 1750, 0)
+    self.Conf.GAlertSettings:addParam("GankTextSize", "Text alert size", SCRIPT_PARAM_SLICE , 18, 14, 50, 0)
+    self.Conf.GAlertSettings:addParam("empty","", 5, "")
+    self.Conf.GAlertSettings:addParam("extraInfo1","Default Max Detection radius: 3600", 5, "")
+    self.Conf.GAlertSettings:addParam("extraInfo1","Default Min Detection radius: 600", 5, "")
+    self.Conf.GAlertSettings:addParam("extraInfo2","Default text size: 18", 5, "")
 
 	self.Conf:addParam("Info","Written by Xivia", 5, "")
 
@@ -355,26 +372,41 @@ function _Draw:newHPBar()
 	end
 end
 
-function _Draw:EnemyPath()
-    for i = 1, #enemyHeroes do
-        local unit = enemyHeroes[i]
-        if unit and not unit.dead and unit.visible and unit.hasMovePath and unit.path.count > 1 then
-            local path = unit.path:Path(2)
-            local endLinePosition = WorldToScreen(D3DXVECTOR3(path.x, path.y, path.z))
-            if OnScreen(endLinePosition.x, endLinePosition.y) then
-                local unitPing = unit.ms
-                local distance = GetDistance(unit, path)
+function _Draw:EnemyPath(unit)
+    if unit and not unit.dead and unit.visible and unit.hasMovePath and unit.path.count > 1 then
+        local path = unit.path:Path(2)
+        local endLinePosition = WorldToScreen(D3DXVECTOR3(path.x, path.y, path.z))
+        if OnScreen(endLinePosition.x, endLinePosition.y) then
+            local unitMoveSpeed = unit.ms
+            local distance = GetDistance(unit, path)
 
-                DrawLine3D(unit.x, unit.y, unit.z, path.x, path.y, path.z, 3, 0xFFCCFFF6)
-                if _Tech.Conf.enemyPath.showTriangle then
-                    DrawCircle3D(path.x, path.y, path.z, 20, 2, 0xFFCCFFF6, 3)
-                end
+            DrawLine3D(unit.x, unit.y, unit.z, path.x, path.y, path.z, 3, 0xFFCCFFF6)
+            if _Tech.Conf.enemyPath.showTriangle then
+                DrawCircle3D(path.x, path.y, path.z, 20, 2, 0xFFCCFFF6, 3)
+            end
 
-                if _Tech.Conf.enemyPath.showTime then
-                    local delay = ceil(distance / unitPing, 2)
-                    DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
-                else
-                    DrawText(unit.charName.."", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+            if _Tech.Conf.enemyPath.showTime then
+                local delay = ceil(distance / unitMoveSpeed, 2)
+                DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+            else
+                DrawText(unit.charName.."", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+            end
+        end
+    end
+end
+
+function _Draw:GankAlert(unit, i)
+    local function DrawAlert(unit, i)
+        DrawText("Possible gank incoming: ".. unit.charName, _Tech.Conf.GAlertSettings.GankTextSize, WINDOW_W / 2 - 100, WINDOW_H / 5 + (i*_Tech.Conf.GAlertSettings.GankTextSize + 3), 0xFF2AFF00)
+    end
+
+    if unit and not unit.dead and unit.visible and unit.hasMovePath then
+        local enemyDistance = GetDistance(myHero, unit)
+        if enemyDistance <= _Tech.Conf.GAlertSettings.GankAlertDistance and enemyDistance >= _Tech.Conf.GAlertSettings.GankAlertMinDistance then
+            if unit.path.count > 1 then
+                local enemyWayDistance = GetDistance(myHero, unit.path:Path(2))
+                if enemyWayDistance < enemyDistance then
+                    DrawAlert(unit, i)
                 end
             end
         end
