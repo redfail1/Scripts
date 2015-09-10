@@ -43,7 +43,7 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.03
+    ToUpdate.Version = 1.04
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -116,11 +116,11 @@ function _Tech:LoadMenu()
     self.Conf:addSubMenu("> Gank alert", "GAlertSettings")
     self.Conf.GAlertSettings:addParam("GankAlertOn", "Gank alert", SCRIPT_PARAM_ONOFF, true)
     self.Conf.GAlertSettings:addParam("GankAlertDistance", "Maximal detection radius", SCRIPT_PARAM_SLICE , 3600, 500, 10000, 0)
-    self.Conf.GAlertSettings:addParam("GankAlertMinDistance", "Minimal detection radius", SCRIPT_PARAM_SLICE , 600, 300, 1750, 0)
+    self.Conf.GAlertSettings:addParam("GankAlertMinDistance", "Minimal detection radius", SCRIPT_PARAM_SLICE , 1200, 300, 1750, 0)
     self.Conf.GAlertSettings:addParam("GankTextSize", "Text alert size", SCRIPT_PARAM_SLICE , 18, 14, 50, 0)
     self.Conf.GAlertSettings:addParam("empty","", 5, "")
     self.Conf.GAlertSettings:addParam("extraInfo1","Default Max Detection radius: 3600", 5, "")
-    self.Conf.GAlertSettings:addParam("extraInfo1","Default Min Detection radius: 600", 5, "")
+    self.Conf.GAlertSettings:addParam("extraInfo1","Default Min Detection radius: 1200", 5, "")
     self.Conf.GAlertSettings:addParam("extraInfo2","Default text size: 18", 5, "")
 
 	self.Conf:addParam("Info","Written by Xivia", 5, "")
@@ -236,6 +236,8 @@ function _Tech:GetAbilityFramePos(unit)
 
         local r ={
             ["XinZhao"] = 1,
+            ["Velkoz"] = -2.65,
+            ["Darius"] = -0.33,
         }
         barOffset.y = r[unit.charName] or barOffset.y
     end
@@ -254,11 +256,12 @@ function _Draw:enemyHUD()
 			textPosty = textPosty + 60
 			local sum1cd = unit:GetSpellData(4).currentCd
 			local sum2cd = unit:GetSpellData(5).currentCd
-			if unit.dead or not unit.visible then
+
+			if unit.dead or not unit.visible and heroSprites[i+enemyCount] ~= nil then
 				heroSprites[i+enemyCount]:Draw(textPostx + 20, textPosty + 6, 255)
-			else
+			elseif heroSprites[i] ~= nil then
 				heroSprites[i]:Draw(textPostx + 20, textPosty + 6, 255)
-			end
+			else return end
 
 			-- Summoner spell icons
 			summonerSprites[_Tech:RenameSums(unit:GetSpellData(4).name)]:Draw(textPostx + 6, textPosty + 7, 255)
