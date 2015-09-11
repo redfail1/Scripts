@@ -23,10 +23,10 @@ local ceil = math.ceil
 
 -- Made by Nebelwolfi to make classes local and not global
 function Class(name)
-	_ENV[name] = {}
-	_ENV[name].__index = _ENV[name]
-	local mt = {  __call = function(self, ...) local b = {} setmetatable(b, _ENV[name]) b:__init(...) return b end }
-	setmetatable(_ENV[name], mt)
+    _ENV[name] = {}
+    _ENV[name].__index = _ENV[name]
+    local mt = {  __call = function(self, ...) local b = {} setmetatable(b, _ENV[name]) b:__init(...) return b end }
+    setmetatable(_ENV[name], mt)
 end
 
 DelayAction(function() if not _G.XawarenessLoaded then Xawareness() end end, 0.05)
@@ -37,13 +37,14 @@ function Xawareness:__init(cfg)
     _G.givenConfig = cfg
     _G.XawarenessLoaded = true
     self:Load()
+    AddMsgCallback(function(a, b) self:WndMsg(a, b) end)
     AddDrawCallback(function() self:Draw() end)
     AddUnloadCallback(function() self:Unload() end)
 end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.04
+    ToUpdate.Version = 1.05
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -57,6 +58,7 @@ function Xawareness:Load()
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
     self:ActualOnLoad()
 end
+
 function Xawareness:ActualOnLoad()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
@@ -66,7 +68,10 @@ end
 
 function Xawareness:Draw()
     if not _Tech.Conf or not updated then return end
-	if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
+
+    if _Tech.Conf.OtherSettings.TimeSettings.TimeOn then  _Draw:Time() end
+    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then return end
+    if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
     if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
 
 
@@ -77,36 +82,45 @@ function Xawareness:Draw()
     end
 end
 
+function Xawareness:WndMsg(a, b)
+    if not _Tech.Conf then return end
+    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then
+        _Tech:AddPrint("Loading sprites.")
+        _Tech:ReloadSprites()
+        _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites = false
+    end
+end
+
 function Xawareness:Unload()
-	for i=1, #summonerSprites do
-		summonerSprites[i]:Release();
-	end
+    for i=1, #summonerSprites do
+        summonerSprites[i]:Release();
+    end
 
-	for i=1, #frameSprites do
-		frameSprites[i]:Release();
-	end
+    for i=1, #frameSprites do
+        frameSprites[i]:Release();
+    end
 
-	for i=1, #heroSprites do
-		heroSprites[i]:Release();
-	end
+    for i=1, #heroSprites do
+        heroSprites[i]:Release();
+    end
 end
 
 Class("_Tech")
 function _Tech:LoadMenu()
-	self.Conf = givenConfig or scriptConfig("[XiviAwareness]", "AwarenessMenu")
-	
-	self.Conf:addSubMenu("> HUD", "HUDSettings")
-	self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
-	self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
-	self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
-    --TODO self.Conf.HUDSettings:addParam("invertImage", "Invert HUD (WIP)", SCRIPT_PARAM_ONOFF, false)
-	self.Conf.HUDSettings:addParam("empty","", 5, "")
-	self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
+    self.Conf = givenConfig or scriptConfig("[XiviAwareness]", "AwarenessMenu")
 
-	self.Conf:addSubMenu("> HP Bar", "hpSettings")
-	self.Conf.hpSettings:addParam("drawHP", "Show cooldowns", SCRIPT_PARAM_ONOFF, true)
+    self.Conf:addSubMenu("> HUD", "HUDSettings")
+    self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
+    self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
+    --TODO self.Conf.HUDSettings:addParam("invertImage", "Invert HUD (WIP)", SCRIPT_PARAM_ONOFF, false)
+    self.Conf.HUDSettings:addParam("empty","", 5, "")
+    self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
+
+    self.Conf:addSubMenu("> HP Bar", "hpSettings")
+    self.Conf.hpSettings:addParam("drawHP", "Show cooldowns", SCRIPT_PARAM_ONOFF, true)
     self.Conf.hpSettings:addParam("drawAlly", "Show ally cooldowns", SCRIPT_PARAM_ONOFF, true)
-	self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
+    self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
 
     self.Conf:addSubMenu("> Enemy waypoint", "enemyPath")
     self.Conf.enemyPath:addParam("showPath", "Show enemy waypoints", SCRIPT_PARAM_ONOFF, true)
@@ -114,6 +128,16 @@ function _Tech:LoadMenu()
     self.Conf.enemyPath:addParam("showTriangle", "Show triangle", SCRIPT_PARAM_ONOFF, true)
 
     self.Conf:addSubMenu("> Gank alert", "GAlertSettings")
+
+    -- Generates a few buttons in the menu that show the enemy names
+    if enemyCount > 0 then
+        self.Conf.GAlertSettings:addSubMenu("> Ignore list", "IgnoreSettings")
+        for i = 1, enemyCount do
+            unit = enemyHeroes[i]
+            self.Conf.GAlertSettings.IgnoreSettings:addParam("Show"..unit.charName, "Show "..unit.charName , SCRIPT_PARAM_ONOFF, true)
+        end
+    end
+
     self.Conf.GAlertSettings:addParam("GankAlertOn", "Gank alert", SCRIPT_PARAM_ONOFF, true)
     self.Conf.GAlertSettings:addParam("GankAlertDistance", "Maximal detection radius", SCRIPT_PARAM_SLICE , 3600, 500, 10000, 0)
     self.Conf.GAlertSettings:addParam("GankAlertMinDistance", "Minimal detection radius", SCRIPT_PARAM_SLICE , 1200, 300, 1750, 0)
@@ -123,14 +147,26 @@ function _Tech:LoadMenu()
     self.Conf.GAlertSettings:addParam("extraInfo1","Default Min Detection radius: 1200", 5, "")
     self.Conf.GAlertSettings:addParam("extraInfo2","Default text size: 18", 5, "")
 
-	self.Conf:addParam("Info","Written by Xivia", 5, "")
+    self.Conf:addSubMenu("> Other", "OtherSettings")
+    self.Conf.OtherSettings:addSubMenu("> Time/Date", "TimeSettings")
+    self.Conf.OtherSettings.TimeSettings:addParam("TimeOn", "Show real time and date", SCRIPT_PARAM_ONOFF, false)
+    self.Conf.OtherSettings.TimeSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
+    self.Conf.OtherSettings.TimeSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
+    self.Conf.OtherSettings.TimeSettings:addParam("textSize", "Text size", SCRIPT_PARAM_SLICE, 16, 1, 30, 0)
 
-	-- Welcome message
-	self:AddPrint("Welcome, " .. GetUser() .. ".")
+    self.Conf.OtherSettings:addSubMenu("> Sprites", "SpriteSettings")
+    self.Conf.OtherSettings.SpriteSettings:addParam("UpdateSprites", "Reload sprites", SCRIPT_PARAM_ONOFF, false)
+
+
+
+    self.Conf:addParam("Info","Written by Xivia", 5, "")
+
+    -- Welcome message
+    self:AddPrint("Welcome, " .. GetUser() .. ".")
 end
 
 function _Tech:AddPrint(msg)
-	 PrintChat("<font color = \"#0078FF\">[XiviAwareness] </font><font color = \"#FFFFFF\">".. msg .."</font>")
+    PrintChat("<font color = \"#0078FF\">[XiviAwareness] </font><font color = \"#FFFFFF\">".. msg .."</font>")
 end
 
 function _Tech:RenameSums(str)
@@ -157,13 +193,13 @@ function _Tech:RenameSums(str)
 end
 
 function _Tech:LoadSprites()
+
     for _, k in pairs({"", "Hero_round", "Hero_round_grey", "others", "Summoner_spells"}) do
         if not DirectoryExist(SPRITE_PATH.."Xawareness//"..k) then
             CreateDirectory(SPRITE_PATH.."Xawareness//"..k)
         end
     end
-
-	self:ImportHeroSprites()
+    self:ImportHeroSprites()
     self:LoadOtherSprites()
 end
 
@@ -171,7 +207,7 @@ function _Tech:LoadOtherSprites()
     -- Load frame
     for i=1, 7 do -- We have 7 sprites so we run it 7 times
         if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
-    	    table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
+            table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
         else
             self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 7 ")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.05) end)
@@ -195,8 +231,8 @@ function _Tech:LoadOtherSprites()
 end
 
 function _Tech:ImportHeroSprites()
-	-- Import hero color icons
-	for i,v in pairs(enemyHeroes) do
+    -- Import hero color icons
+    for i,v in pairs(enemyHeroes) do
         if FileExist(SPRITE_PATH.."Xawareness//Hero_round//"..v.charName ..".png") then
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round\\" .. v.charName .. ".png"))
         else
@@ -205,10 +241,10 @@ function _Tech:ImportHeroSprites()
             heroSprites = {}
             return;
         end
-	end
+    end
 
-	-- imports hero grey icons
-	for i,v in pairs(enemyHeroes) do
+    -- imports hero grey icons
+    for i,v in pairs(enemyHeroes) do
         if FileExist(SPRITE_PATH.."Xawareness//Hero_round_grey//"..v.charName ..".png") then
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round_grey\\" .. v.charName .. ".png"))
         else
@@ -217,7 +253,7 @@ function _Tech:ImportHeroSprites()
             heroSprites = {}
             return;
         end
-	end
+    end
 end
 
 -- Credits to Jorj
@@ -245,68 +281,93 @@ function _Tech:GetAbilityFramePos(unit)
     return D3DXVECTOR2(barPos.x + barOffset.x * 150 - 70, barPos.y + barOffset.y * 50 + 13)
 end
 
+function _Tech:ReloadSprites()
+    for i=1, #summonerSprites do
+        summonerSprites[i]:Release();
+    end
+    summonerSprites = {}
+
+    for i=1, #frameSprites do
+        frameSprites[i]:Release();
+    end
+    frameSprites = {}
+
+    for i=1, #heroSprites do
+        heroSprites[i]:Release();
+    end
+    heroSprites = {}
+
+    self:LoadSprites()
+end
+
 Class("_Draw")
 function _Draw:enemyHUD()
-	local textPostx = _Tech.Conf.HUDSettings.WidthPos
-	local textPosty = _Tech.Conf.HUDSettings.HeighthPos
+    local textPostx = _Tech.Conf.HUDSettings.WidthPos
+    local textPosty = _Tech.Conf.HUDSettings.HeighthPos
 
     for i = 1, enemyCount do
+        -- Checks if it misses any sprites before executing anything
+        if not heroSprites[i+enemyCount] or not heroSprites[i] then
+            _Tech:AddPrint("Missing sprites, reloading sprites.")
+            _Tech:ReloadSprites()
+        end
+
         local unit = enemyHeroes[i]
-		if unit then
-			textPosty = textPosty + 60
-			local sum1cd = unit:GetSpellData(4).currentCd
-			local sum2cd = unit:GetSpellData(5).currentCd
+        if unit then
+            textPosty = textPosty + 60
+            local sum1cd = unit:GetSpellData(4).currentCd
+            local sum2cd = unit:GetSpellData(5).currentCd
 
-			if unit.dead or not unit.visible and heroSprites[i+enemyCount] ~= nil then
-				heroSprites[i+enemyCount]:Draw(textPostx + 20, textPosty + 6, 255)
-			elseif heroSprites[i] ~= nil then
-				heroSprites[i]:Draw(textPostx + 20, textPosty + 6, 255)
-			else return end
+            if unit.dead or not unit.visible and heroSprites[i+enemyCount] ~= nil then
+                heroSprites[i+enemyCount]:Draw(textPostx + 20, textPosty + 6, 255)
+            elseif heroSprites[i] ~= nil then
+                heroSprites[i]:Draw(textPostx + 20, textPosty + 6, 255)
+            else return end
 
-			-- Summoner spell icons
-			summonerSprites[_Tech:RenameSums(unit:GetSpellData(4).name)]:Draw(textPostx + 6, textPosty + 7, 255)
-			summonerSprites[_Tech:RenameSums(unit:GetSpellData(5).name)]:Draw(textPostx + 6, textPosty + 34, 255)
+            -- Summoner spell icons
+            summonerSprites[_Tech:RenameSums(unit:GetSpellData(4).name)]:Draw(textPostx + 6, textPosty + 7, 255)
+            summonerSprites[_Tech:RenameSums(unit:GetSpellData(5).name)]:Draw(textPostx + 6, textPosty + 34, 255)
 
-			if sum1cd > 0 then 
-				local textWdith = (GetTextArea(""..ceil(sum1cd), 12).x / 2)
-				frameSprites[5]:Draw(textPostx + 6, textPosty + 7, 255)
+            if sum1cd > 0 then
+                local textWdith = (GetTextArea(""..ceil(sum1cd), 12).x / 2)
+                frameSprites[5]:Draw(textPostx + 6, textPosty + 7, 255)
 
-				if sum1cd < 10 then
-					textWdith = textWdith + 12
-				elseif sum1cd < 100 then
-					textWdith = textWdith + 6 
-				end
-				DrawText(""..ceil(sum1cd), 12, textPostx + textWdith, textPosty + 12, 0xFFFFFFFF)
-			end
+                if sum1cd < 10 then
+                    textWdith = textWdith + 12
+                elseif sum1cd < 100 then
+                    textWdith = textWdith + 6
+                end
+                DrawText(""..ceil(sum1cd), 12, textPostx + textWdith, textPosty + 12, 0xFFFFFFFF)
+            end
 
-			if sum2cd > 0 then 
-				local textWdith = (GetTextArea(""..ceil(sum2cd), 12).x * .5)
-				frameSprites[5]:Draw(textPostx + 6, textPosty + 34, 255)
-				
-				if sum2cd < 10 then
-					textWdith = textWdith + 12
-				elseif sum2cd < 100 then
-					textWdith = textWdith + 6 
-				end
+            if sum2cd > 0 then
+                local textWdith = (GetTextArea(""..ceil(sum2cd), 12).x * .5)
+                frameSprites[5]:Draw(textPostx + 6, textPosty + 34, 255)
 
-				DrawText(""..ceil(sum2cd), 12, textPostx + textWdith, textPosty + 39, 0xFFFFFFFF)
-			end
+                if sum2cd < 10 then
+                    textWdith = textWdith + 12
+                elseif sum2cd < 100 then
+                    textWdith = textWdith + 6
+                end
 
-			-- Outside frame + Hp and Mana bar.
-			local widthPos1 = (GetTextArea(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11).x * .5)
-			local widthPos2 = (GetTextArea(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11).x * .5)
+                DrawText(""..ceil(sum2cd), 12, textPostx + textWdith, textPosty + 39, 0xFFFFFFFF)
+            end
 
-			frameSprites[4]:Draw(textPostx + 72, textPosty + 24, 255)
-			frameSprites[2]:SetScale((unit.health / unit.maxHealth),1)
-			frameSprites[2]:Draw(textPostx + 72, textPosty + 24, 255)
-			DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 63 + widthPos1, textPosty + 22, 0xFFFFFFFF)
-			frameSprites[3]:SetScale((unit.mana / unit. maxMana),1)
-			frameSprites[3]:Draw(textPostx + 72, textPosty + 34, 255)
-			DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 63 + widthPos2, textPosty + 32, 0xFFFFFFFF)
+            -- Outside frame + Hp and Mana bar.
+            local widthPos1 = (GetTextArea(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11).x * .5)
+            local widthPos2 = (GetTextArea(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11).x * .5)
 
-			frameSprites[1]:Draw(textPostx, textPosty, 255)
-		end
-	end
+            frameSprites[4]:Draw(textPostx + 72, textPosty + 24, 255)
+            frameSprites[2]:SetScale((unit.health / unit.maxHealth),1)
+            frameSprites[2]:Draw(textPostx + 72, textPosty + 24, 255)
+            DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 63 + widthPos1, textPosty + 22, 0xFFFFFFFF)
+            frameSprites[3]:SetScale((unit.mana / unit. maxMana),1)
+            frameSprites[3]:Draw(textPostx + 72, textPosty + 34, 255)
+            DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 63 + widthPos2, textPosty + 32, 0xFFFFFFFF)
+
+            frameSprites[1]:Draw(textPostx, textPosty, 255)
+        end
+    end
 end
 
 function _Draw:newHPBar()
@@ -314,49 +375,49 @@ function _Draw:newHPBar()
         return 0 + ( _Tech.Conf.hpSettings.drawAlly and allyCount or 0) + enemyCount
     end
 
-	for i = 1, championCount() do
-    	local unit = enemyHeroes[i] or allyHeroes[i-enemyCount]
+    for i = 1, championCount() do
+        local unit = enemyHeroes[i] or allyHeroes[i-enemyCount]
 
         if unit and not unit.dead and unit.visible then
-			local framePos = _Tech:GetAbilityFramePos(unit)
-			framePos.y = framePos.y - 30
+            local framePos = _Tech:GetAbilityFramePos(unit)
+            framePos.y = framePos.y - 30
 
-			if OnScreen(framePos, framePos) then
-				-- Saving spelldata's 2 local var since we call them a lot
-				local sum1		= unit:GetSpellData(4)
-				local sum2		= unit:GetSpellData(5)
+            if OnScreen(framePos, framePos) then
+                -- Saving spelldata's 2 local var since we call them a lot
+                local sum1		= unit:GetSpellData(4)
+                local sum2		= unit:GetSpellData(5)
 
-				-- Summoner spell icons
-				summonerSprites[_Tech:RenameSums(sum1.name)]:Draw(framePos.x + 142.5, framePos.y + 1, 255)
-				summonerSprites[_Tech:RenameSums(sum2.name)]:Draw(framePos.x + 142.5, framePos.y + 28, 255)
+                -- Summoner spell icons
+                summonerSprites[_Tech:RenameSums(sum1.name)]:Draw(framePos.x + 142.5, framePos.y + 1, 255)
+                summonerSprites[_Tech:RenameSums(sum2.name)]:Draw(framePos.x + 142.5, framePos.y + 28, 255)
 
-				if sum1.currentCd > 0 then 
-					local textWdith = (GetTextArea(""..ceil(sum1.currentCd), 12).x * .5)
-					frameSprites[5]:Draw(framePos.x + 142.5, framePos.y + 1, 255)
+                if sum1.currentCd > 0 then
+                    local textWdith = (GetTextArea(""..ceil(sum1.currentCd), 12).x * .5)
+                    frameSprites[5]:Draw(framePos.x + 142.5, framePos.y + 1, 255)
 
-					if sum1.currentCd < 10 then
-						textWdith = textWdith + 12
-					elseif sum1.currentCd < 100 then
-						textWdith = textWdith + 6 
-					end
-					DrawText(""..ceil(sum1.currentCd), 12, framePos.x + textWdith + 136, framePos.y + 6, 0xFFFFFFFF)
-				end
+                    if sum1.currentCd < 10 then
+                        textWdith = textWdith + 12
+                    elseif sum1.currentCd < 100 then
+                        textWdith = textWdith + 6
+                    end
+                    DrawText(""..ceil(sum1.currentCd), 12, framePos.x + textWdith + 136, framePos.y + 6, 0xFFFFFFFF)
+                end
 
-				if sum2.currentCd > 0 then 
-					local textWdith = (GetTextArea(""..ceil(sum2.currentCd), 12).x * .5)
-					frameSprites[5]:Draw(framePos.x + 142.5, framePos.y + 28, 255)
-					
-					if sum2.currentCd < 10 then
-						textWdith = textWdith + 12
-					elseif sum2.currentCd < 100 then
-						textWdith = textWdith + 6 
-					end
+                if sum2.currentCd > 0 then
+                    local textWdith = (GetTextArea(""..ceil(sum2.currentCd), 12).x * .5)
+                    frameSprites[5]:Draw(framePos.x + 142.5, framePos.y + 28, 255)
 
-					DrawText(""..ceil(sum2.currentCd), 12, framePos.x + textWdith + 136, framePos.y + 33, 0xFFFFFFFF)
-				end
+                    if sum2.currentCd < 10 then
+                        textWdith = textWdith + 12
+                    elseif sum2.currentCd < 100 then
+                        textWdith = textWdith + 6
+                    end
 
-				frameSprites[6]:Draw(framePos.x, framePos.y, 255)
-				for i=0, 3 do
+                    DrawText(""..ceil(sum2.currentCd), 12, framePos.x + textWdith + 136, framePos.y + 33, 0xFFFFFFFF)
+                end
+
+                frameSprites[6]:Draw(framePos.x, framePos.y, 255)
+                for i=0, 3 do
                     local spell = unit:GetSpellData(i)
                     local ccd = spell.currentCd
                     if ccd > 0 then
@@ -370,9 +431,9 @@ function _Draw:newHPBar()
                         frameSprites[7]:Draw(framePos.x + 5 + 26 * i, framePos.y + 30, 255)
                     end
                 end
-			end
-		end
-	end
+            end
+        end
+    end
 end
 
 function _Draw:EnemyPath(unit)
@@ -390,7 +451,7 @@ function _Draw:EnemyPath(unit)
 
             if _Tech.Conf.enemyPath.showTime then
                 local delay = ceil(distance / unitMoveSpeed, 2)
-                DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+                DrawText(unit.charName.." "..delay.. " S", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
             else
                 DrawText(unit.charName.."", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
             end
@@ -403,7 +464,7 @@ function _Draw:GankAlert(unit, i)
         DrawText("Possible gank incoming: ".. unit.charName, _Tech.Conf.GAlertSettings.GankTextSize, WINDOW_W / 2 - 100, WINDOW_H / 5 + (i*_Tech.Conf.GAlertSettings.GankTextSize + 3), 0xFF2AFF00)
     end
 
-    if unit and not unit.dead and unit.visible and unit.hasMovePath then
+    if unit and not unit.dead and unit.visible and unit.hasMovePath and _Tech.Conf.GAlertSettings.IgnoreSettings["Show" .. unit.charName] then
         local enemyDistance = GetDistance(myHero, unit)
         if enemyDistance <= _Tech.Conf.GAlertSettings.GankAlertDistance and enemyDistance >= _Tech.Conf.GAlertSettings.GankAlertMinDistance then
             if unit.path.count > 1 then
@@ -414,6 +475,11 @@ function _Draw:GankAlert(unit, i)
             end
         end
     end
+end
+
+function _Draw:Time()
+    local currentDate = os.date("%c")
+    DrawText(""..currentDate, _Tech.Conf.OtherSettings.TimeSettings.textSize, _Tech.Conf.OtherSettings.TimeSettings.WidthPos,  _Tech.Conf.OtherSettings.TimeSettings.HeighthPos, 0xFFFFFFFF)
 end
 
 -- Auto update stuff made by Aroc
