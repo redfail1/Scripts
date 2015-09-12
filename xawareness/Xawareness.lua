@@ -11,8 +11,10 @@ assert(load(Base64Decode("G0x1YVIAAQQEBAgAGZMNChoKAAAAAAAAAAAAAQIKAAAABgBAAEFAAA
 
 local enemyHeroes = GetEnemyHeroes()
 local allyHeroes = GetAllyHeroes()
+local towers = {}
 local enemyCount
 local allyCount
+local towerCount
 local heroSprites = {}
 local summonerSprites = {}
 local frameSprites = {}
@@ -44,7 +46,7 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.05
+    ToUpdate.Version = 1.06
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -62,17 +64,22 @@ end
 function Xawareness:ActualOnLoad()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
+
     _Tech:LoadSprites()
     _Tech:LoadMenu()
+    _Tech:AddTurrets()
+    towerCount = #towers
 end
 
 function Xawareness:Draw()
     if not _Tech.Conf or not updated then return end
 
+
     if _Tech.Conf.OtherSettings.TimeSettings.TimeOn then  _Draw:Time() end
     if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then return end
     if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
     if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
+    if _Tech.Conf.OtherSettings.TowerSettings.TowerOn then _Draw:TurretRange() end
 
 
     for i = 1, #enemyHeroes do
@@ -111,8 +118,8 @@ function _Tech:LoadMenu()
 
     self.Conf:addSubMenu("> HUD", "HUDSettings")
     self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
-    self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
-    self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
+    self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, (WINDOW_W - 160), 1, (WINDOW_W - 160), 0)
+    self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, (WINDOW_H - 350), 0)
     --TODO self.Conf.HUDSettings:addParam("invertImage", "Invert HUD (WIP)", SCRIPT_PARAM_ONOFF, false)
     self.Conf.HUDSettings:addParam("empty","", 5, "")
     self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
@@ -133,7 +140,7 @@ function _Tech:LoadMenu()
     if enemyCount > 0 then
         self.Conf.GAlertSettings:addSubMenu("> Ignore list", "IgnoreSettings")
         for i = 1, enemyCount do
-            unit = enemyHeroes[i]
+            local unit = enemyHeroes[i]
             self.Conf.GAlertSettings.IgnoreSettings:addParam("Show"..unit.charName, "Show "..unit.charName , SCRIPT_PARAM_ONOFF, true)
         end
     end
@@ -150,12 +157,17 @@ function _Tech:LoadMenu()
     self.Conf:addSubMenu("> Other", "OtherSettings")
     self.Conf.OtherSettings:addSubMenu("> Time/Date", "TimeSettings")
     self.Conf.OtherSettings.TimeSettings:addParam("TimeOn", "Show real time and date", SCRIPT_PARAM_ONOFF, false)
-    self.Conf.OtherSettings.TimeSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_W, 0)
+    self.Conf.OtherSettings.TimeSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, (WINDOW_W - 250), 0)
     self.Conf.OtherSettings.TimeSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
     self.Conf.OtherSettings.TimeSettings:addParam("textSize", "Text size", SCRIPT_PARAM_SLICE, 16, 1, 30, 0)
 
     self.Conf.OtherSettings:addSubMenu("> Sprites", "SpriteSettings")
     self.Conf.OtherSettings.SpriteSettings:addParam("UpdateSprites", "Reload sprites", SCRIPT_PARAM_ONOFF, false)
+
+    self.Conf.OtherSettings:addSubMenu("> Towers", "TowerSettings")
+    self.Conf.OtherSettings.TowerSettings:addParam("TowerOn", "Show tower range", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.OtherSettings.TowerSettings:addParam("TowerQual", "Circle quality", SCRIPT_PARAM_SLICE, 18, 10, 32, 0)
+    self.Conf.OtherSettings.TowerSettings:addParam("TowerColor", "Circle color", SCRIPT_PARAM_LIST, 5, { "Red", "Green", "Blue", "Yellow", "Purple", "White"})
 
 
 
@@ -298,6 +310,15 @@ function _Tech:ReloadSprites()
     heroSprites = {}
 
     self:LoadSprites()
+end
+
+function _Tech:AddTurrets()
+    for i = 1, objManager.iCount do
+        local object = objManager:getObject(i)
+        if object ~= nill and object.type == "obj_AI_Turret" and object.team == TEAM_ENEMY and not string.find(object.name, "TurretShrine") then
+            table.insert(towers, object)
+        end
+    end
 end
 
 Class("_Draw")
@@ -450,8 +471,9 @@ function _Draw:EnemyPath(unit)
             end
 
             if _Tech.Conf.enemyPath.showTime then
-                local delay = ceil(distance / unitMoveSpeed, 2)
-                DrawText(unit.charName.." "..delay.. " S", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
+                local delay = math.round((distance / unitMoveSpeed)*10)*0.1
+
+                DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
             else
                 DrawText(unit.charName.."", 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
             end
@@ -480,6 +502,34 @@ end
 function _Draw:Time()
     local currentDate = os.date("%c")
     DrawText(""..currentDate, _Tech.Conf.OtherSettings.TimeSettings.textSize, _Tech.Conf.OtherSettings.TimeSettings.WidthPos,  _Tech.Conf.OtherSettings.TimeSettings.HeighthPos, 0xFFFFFFFF)
+end
+
+function _Draw:TurretRange()
+    local newColor
+    if _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 1 then
+        newColor = 0xFFFF0000
+    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 2 then
+        newColor = 0xFF219C00
+    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 3 then
+        newColor = 0xFF00BAFF
+    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 4 then
+        newColor = 0xFFFFFF00
+    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 5 then
+        newColor = 0xFF8A00FF
+    else
+        newColor = 0xFFFFFFFF
+    end
+
+    for i = 1, towerCount do
+        local towerObj = towers[i]
+
+        if towerObj and towerObj.health > 0 then
+            local screenPos = WorldToScreen(towerObj.pos)
+            if OnScreen(screenPos, screenPos) then
+                DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 865, 2, newColor, _Tech.Conf.OtherSettings.TowerSettings.TowerQual)
+            end
+        end
+    end
 end
 
 -- Auto update stuff made by Aroc
