@@ -382,10 +382,10 @@ function _Draw:enemyHUD()
             frameSprites[4]:Draw(textPostx + 72, textPosty + 24, 255)
             frameSprites[2]:SetScale((unit.health / unit.maxHealth),1)
             frameSprites[2]:Draw(textPostx + 72, textPosty + 24, 255)
-            DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 63 + widthPos1, textPosty + 22, 0xFFFFFFFF)
+            DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 74 + widthPos1, textPosty + 22, 0xFFFFFFFF)
             frameSprites[3]:SetScale((unit.mana / unit. maxMana),1)
             frameSprites[3]:Draw(textPostx + 72, textPosty + 34, 255)
-            DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 63 + widthPos2, textPosty + 32, 0xFFFFFFFF)
+            DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 74 + widthPos2, textPosty + 32, 0xFFFFFFFF)
 
             frameSprites[1]:Draw(textPostx, textPosty, 255)
         end
