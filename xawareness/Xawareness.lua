@@ -46,7 +46,7 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.07
+    ToUpdate.Version = 1.071
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -89,7 +89,7 @@ function Xawareness:Draw()
 end
 
 function Xawareness:WndMsg(a, b)
-    if not _Tech.Conf then return end
+    if not _Tech.Conf or updated == false then return end
     if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then
         _Tech:AddPrint("Loading sprites.")
         _Tech:ReloadSprites()
