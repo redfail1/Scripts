@@ -46,7 +46,7 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.06
+    ToUpdate.Version = 1.07
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
@@ -72,8 +72,7 @@ function Xawareness:ActualOnLoad()
 end
 
 function Xawareness:Draw()
-    if not _Tech.Conf or not updated then return end
-
+    if not _Tech.Conf or updated == false then return end
 
     if _Tech.Conf.OtherSettings.TimeSettings.TimeOn then  _Draw:Time() end
     if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then return end
@@ -205,12 +204,14 @@ function _Tech:RenameSums(str)
 end
 
 function _Tech:LoadSprites()
+    updated = false
 
     for _, k in pairs({"", "Hero_round", "Hero_round_grey", "others", "Summoner_spells"}) do
         if not DirectoryExist(SPRITE_PATH.."Xawareness//"..k) then
             CreateDirectory(SPRITE_PATH.."Xawareness//"..k)
         end
     end
+
     self:ImportHeroSprites()
     self:LoadOtherSprites()
 end
