@@ -46,15 +46,15 @@ end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.071
+    ToUpdate.Version = 1.072
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
     ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
     ToUpdate.SavePath = SCRIPT_PATH.."/xawareness.lua"
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Updated to "..NewVersion..".") end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
-    ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("New Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", Script updated to "..NewVersion..".") end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", no Updates Found, Script version " .. ToUpdate.Version .. ".") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", new Version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, function() end,function() end, function() end,function() end)
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
@@ -62,24 +62,23 @@ function Xawareness:Load()
 end
 
 function Xawareness:ActualOnLoad()
+    _Tech:LoadSprites()
     enemyCount = #enemyHeroes
     allyCount = #allyHeroes
 
-    _Tech:LoadSprites()
     _Tech:LoadMenu()
     _Tech:AddTurrets()
     towerCount = #towers
 end
 
 function Xawareness:Draw()
-    if not _Tech.Conf or updated == false then return end
+    if not _Tech.Conf then return end
+    if updated == false then return end
 
     if _Tech.Conf.OtherSettings.TimeSettings.TimeOn then  _Draw:Time() end
-    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then return end
     if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
     if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
     if _Tech.Conf.OtherSettings.TowerSettings.TowerOn then _Draw:TurretRange() end
-
 
     for i = 1, #enemyHeroes do
         local unit = enemyHeroes[i]
@@ -89,9 +88,9 @@ function Xawareness:Draw()
 end
 
 function Xawareness:WndMsg(a, b)
-    if not _Tech.Conf or updated == false then return end
-    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites then
-        _Tech:AddPrint("Loading sprites.")
+    if not _Tech.Conf then return end
+    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites and updated == true then
+        _Tech:AddPrint("Loaded sprites.")
         _Tech:ReloadSprites()
         _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites = false
     end
@@ -172,8 +171,6 @@ function _Tech:LoadMenu()
 
     self.Conf:addParam("Info","Written by Xivia", 5, "")
 
-    -- Welcome message
-    self:AddPrint("Welcome, " .. GetUser() .. ".")
 end
 
 function _Tech:AddPrint(msg)
@@ -213,7 +210,6 @@ function _Tech:LoadSprites()
     end
 
     self:ImportHeroSprites()
-    self:LoadOtherSprites()
 end
 
 function _Tech:LoadOtherSprites()
@@ -223,7 +219,7 @@ function _Tech:LoadOtherSprites()
             table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
         else
             self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 7 ")
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.05) end)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
             frameSprites = {}
             return;
         end
@@ -235,7 +231,7 @@ function _Tech:LoadOtherSprites()
             table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
         else
             self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.05) end)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
             summonerSprites = {}
             return;
         end
@@ -250,7 +246,7 @@ function _Tech:ImportHeroSprites()
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round\\" .. v.charName .. ".png"))
         else
             self:AddPrint("Downloading missing sprite in folder: Hero_round ".. v.charName)
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.05) end)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.15) end)
             heroSprites = {}
             return;
         end
@@ -262,11 +258,13 @@ function _Tech:ImportHeroSprites()
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round_grey\\" .. v.charName .. ".png"))
         else
             self:AddPrint("Downloading missing sprite in folder: Hero_round_grey ".. v.charName)
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round_grey/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round_grey//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.05) end)
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round_grey/"..v.charName..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Hero_round_grey//"..v.charName..".png", function() DelayAction(function() self:ImportHeroSprites() end, 0.15) end)
             heroSprites = {}
             return;
         end
     end
+
+    self:LoadOtherSprites()
 end
 
 -- Credits to Jorj
@@ -295,6 +293,8 @@ function _Tech:GetAbilityFramePos(unit)
 end
 
 function _Tech:ReloadSprites()
+    if updated == false then return end
+
     for i=1, #summonerSprites do
         summonerSprites[i]:Release();
     end
@@ -328,8 +328,9 @@ function _Draw:enemyHUD()
     local textPosty = _Tech.Conf.HUDSettings.HeighthPos
 
     for i = 1, enemyCount do
-        -- Checks if it misses any sprites before executing anything
-        if not heroSprites[i+enemyCount] or not heroSprites[i] then
+        
+        if heroSprites[i+enemyCount] == nil or heroSprites[i] == nil and updated then
+            updated = false
             _Tech:AddPrint("Missing sprites, reloading sprites.")
             _Tech:ReloadSprites()
         end
@@ -382,10 +383,10 @@ function _Draw:enemyHUD()
             frameSprites[4]:Draw(textPostx + 72, textPosty + 24, 255)
             frameSprites[2]:SetScale((unit.health / unit.maxHealth),1)
             frameSprites[2]:Draw(textPostx + 72, textPosty + 24, 255)
-            DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 74 + widthPos1, textPosty + 22, 0xFFFFFFFF)
+            DrawText(ceil(unit.health) .. " / " .. ceil(unit.maxHealth), 11, textPostx + 67 + widthPos1, textPosty + 22, 0xFFFFFFFF)
             frameSprites[3]:SetScale((unit.mana / unit. maxMana),1)
             frameSprites[3]:Draw(textPostx + 72, textPosty + 34, 255)
-            DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 74 + widthPos2, textPosty + 32, 0xFFFFFFFF)
+            DrawText(ceil(unit.mana) .. " / " .. ceil(unit.maxMana), 11, textPostx + 67 + widthPos2, textPosty + 32, 0xFFFFFFFF)
 
             frameSprites[1]:Draw(textPostx, textPosty, 255)
         end
