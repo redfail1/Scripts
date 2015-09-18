@@ -24,7 +24,7 @@ local screenConstY = 0.3645833333333333
 local posX = WINDOW_W * screenConstX
 local posY = {WINDOW_H * screenConstY, WINDOW_H * screenConstY + 60, WINDOW_H * screenConstY + 120, WINDOW_H * screenConstY + 180, WINDOW_H * screenConstY + 240}
 local posE = false
-local tRange = 950
+local tRange = 865
 local towers = {}
 local tHealth = {1000, 1200, 1300, 1500, 2000, 2300, 2500}
 local enemyMinions = nil
@@ -58,7 +58,7 @@ end
 
 function autoUpdate()
 	local ToUpdate = {}
-	ToUpdate.Version = 1.1
+	ToUpdate.Version = 1.11
 	ToUpdate.UseHttps = true
 	ToUpdate.Host = "raw.githubusercontent.com"
 	ToUpdate.VersionPath = "/justh1n10/Scripts/master/zAwareness/ultHelper.version"
