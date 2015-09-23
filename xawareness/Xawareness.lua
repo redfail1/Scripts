@@ -225,7 +225,7 @@ function _Tech:LoadOtherSprites()
         if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
             table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
         else
-            self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 7 ")
+            self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 9 ")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
             frameSprites = {}
             return;
