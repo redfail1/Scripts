@@ -9,6 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
+local scriptVersion = 1.08
 local enemyHeroes = GetEnemyHeroes()
 local allyHeroes = GetAllyHeroes()
 local towers = {}
@@ -18,6 +19,8 @@ local towerCount
 local heroSprites = {}
 local summonerSprites = {}
 local frameSprites = {}
+local sightWards = {}
+local visionWards = {}
 local updated = false
 
 -- math
@@ -35,6 +38,7 @@ DelayAction(function() if not _G.XawarenessLoaded then Xawareness() end end, 0.0
 
 class "Xawareness"
 function Xawareness:__init(cfg)
+    ShowConsole()
     if _G.XawarenessLoaded then return end
     _G.givenConfig = cfg
     _G.XawarenessLoaded = true
@@ -42,19 +46,21 @@ function Xawareness:__init(cfg)
     AddMsgCallback(function(a, b) self:WndMsg(a, b) end)
     AddDrawCallback(function() self:Draw() end)
     AddUnloadCallback(function() self:Unload() end)
+    AddCreateObjCallback(function(obj) _Tech:AddWards(obj) end)
+    AddDeleteObjCallback(function(obj) _Tech:DeleteWard(obj) end)
 end
 
 function Xawareness:Load()
     local ToUpdate = {}
-    ToUpdate.Version = 1.072
+    ToUpdate.Version = scriptVersion
     ToUpdate.UseHttps = true
     ToUpdate.Host = "raw.githubusercontent.com"
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
     ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
     ToUpdate.SavePath = SCRIPT_PATH.."/xawareness.lua"
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", Script updated to "..NewVersion..".") end
-    ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", no Updates Found, Script version " .. ToUpdate.Version .. ".") end
-    ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("Welcome " .. GetUser() .. ", new Version found ("..NewVersion.."). Please wait until its downloaded") end
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Welcome, Script updated to "..NewVersion..".") end
+    ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("Welcome, no updates found, current version " .. ToUpdate.Version .. ".") end
+    ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("Welcome, new version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, function() end,function() end, function() end,function() end)
     ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
@@ -75,10 +81,11 @@ function Xawareness:Draw()
     if not _Tech.Conf then return end
     if updated == false then return end
 
-    if _Tech.Conf.OtherSettings.TimeSettings.TimeOn then  _Draw:Time() end
+    if _Tech.Conf.TimeSettings.TimeOn then  _Draw:Time() end
     if _Tech.Conf.hpSettings.drawHP then _Draw:newHPBar() end
     if _Tech.Conf.HUDSettings.ShowHud then _Draw:enemyHUD() end
-    if _Tech.Conf.OtherSettings.TowerSettings.TowerOn then _Draw:TurretRange() end
+    if _Tech.Conf.TowerSettings.TowerOn then _Draw:TurretRange() end
+    if _Tech.Conf.enemyWards.showWards then _Draw:Wards() end
 
     for i = 1, #enemyHeroes do
         local unit = enemyHeroes[i]
@@ -89,10 +96,10 @@ end
 
 function Xawareness:WndMsg(a, b)
     if not _Tech.Conf then return end
-    if _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites and updated == true then
+    if _Tech.Conf.SpriteSettings.UpdateSprites and updated == true then
         _Tech:AddPrint("Loaded sprites.")
         _Tech:ReloadSprites()
-        _Tech.Conf.OtherSettings.SpriteSettings.UpdateSprites = false
+        _Tech.Conf.SpriteSettings.UpdateSprites = false
     end
 end
 
@@ -112,13 +119,12 @@ end
 
 Class("_Tech")
 function _Tech:LoadMenu()
-    self.Conf = givenConfig or scriptConfig("[XiviAwareness]", "AwarenessMenu")
+    self.Conf = givenConfig or scriptConfig("[xAwareness]", "AwarenessMenu")
 
     self.Conf:addSubMenu("> HUD", "HUDSettings")
     self.Conf.HUDSettings:addParam("ShowHud", "Show HUD", SCRIPT_PARAM_ONOFF, true)
     self.Conf.HUDSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, (WINDOW_W - 160), 1, (WINDOW_W - 160), 0)
     self.Conf.HUDSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, (WINDOW_H - 350), 0)
-    --TODO self.Conf.HUDSettings:addParam("invertImage", "Invert HUD (WIP)", SCRIPT_PARAM_ONOFF, false)
     self.Conf.HUDSettings:addParam("empty","", 5, "")
     self.Conf.HUDSettings:addParam("extraInfo1","These settings only apply for the side HUD.", 5, "")
 
@@ -152,25 +158,26 @@ function _Tech:LoadMenu()
     self.Conf.GAlertSettings:addParam("extraInfo1","Default Min Detection radius: 1200", 5, "")
     self.Conf.GAlertSettings:addParam("extraInfo2","Default text size: 18", 5, "")
 
-    self.Conf:addSubMenu("> Other", "OtherSettings")
-    self.Conf.OtherSettings:addSubMenu("> Time/Date", "TimeSettings")
-    self.Conf.OtherSettings.TimeSettings:addParam("TimeOn", "Show real time and date", SCRIPT_PARAM_ONOFF, false)
-    self.Conf.OtherSettings.TimeSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, (WINDOW_W - 250), 0)
-    self.Conf.OtherSettings.TimeSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
-    self.Conf.OtherSettings.TimeSettings:addParam("textSize", "Text size", SCRIPT_PARAM_SLICE, 16, 1, 30, 0)
+    self.Conf:addSubMenu("> Enemy wards", "enemyWards")
+    self.Conf.enemyWards:addParam("showWards", "Show enemy wards", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.enemyWards:addParam("wardQual", "Circle quality", SCRIPT_PARAM_SLICE, 8, 4, 16, 0)
 
-    self.Conf.OtherSettings:addSubMenu("> Sprites", "SpriteSettings")
-    self.Conf.OtherSettings.SpriteSettings:addParam("UpdateSprites", "Reload sprites", SCRIPT_PARAM_ONOFF, false)
+    self.Conf:addSubMenu("> Time/Date", "TimeSettings")
+    self.Conf.TimeSettings:addParam("TimeOn", "Show real time and date", SCRIPT_PARAM_ONOFF, false)
+    self.Conf.TimeSettings:addParam("WidthPos", "Horizontal position", SCRIPT_PARAM_SLICE, 10, 1, (WINDOW_W - 250), 0)
+    self.Conf.TimeSettings:addParam("HeighthPos", "Vertical position", SCRIPT_PARAM_SLICE, 10, 1, WINDOW_H, 0)
+    self.Conf.TimeSettings:addParam("textSize", "Text size", SCRIPT_PARAM_SLICE, 16, 1, 30, 0)
 
-    self.Conf.OtherSettings:addSubMenu("> Towers", "TowerSettings")
-    self.Conf.OtherSettings.TowerSettings:addParam("TowerOn", "Show tower range", SCRIPT_PARAM_ONOFF, true)
-    self.Conf.OtherSettings.TowerSettings:addParam("TowerQual", "Circle quality", SCRIPT_PARAM_SLICE, 18, 10, 32, 0)
-    self.Conf.OtherSettings.TowerSettings:addParam("TowerColor", "Circle color", SCRIPT_PARAM_LIST, 5, { "Red", "Green", "Blue", "Yellow", "Purple", "White"})
+    self.Conf:addSubMenu("> Tower range indicator", "TowerSettings")
+    self.Conf.TowerSettings:addParam("TowerOn", "Show tower range", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.TowerSettings:addParam("TowerQual", "Circle quality", SCRIPT_PARAM_SLICE, 18, 10, 32, 0)
+    self.Conf.TowerSettings:addParam("TowerColor", "Circle color", SCRIPT_PARAM_LIST, 5, { "Red", "Green", "Blue", "Yellow", "Purple", "White"})
 
+    self.Conf:addSubMenu("> Sprites", "SpriteSettings")
+    self.Conf.SpriteSettings:addParam("UpdateSprites", "Reload sprites", SCRIPT_PARAM_ONOFF, false)
 
-
-    self.Conf:addParam("Info","Written by Xivia", 5, "")
-
+    self.Conf:addParam("Info","Author: Xivia", 5, "")
+    self.Conf:addParam("Info2","Version: "..scriptVersion, 5, "")
 end
 
 function _Tech:AddPrint(msg)
@@ -214,7 +221,7 @@ end
 
 function _Tech:LoadOtherSprites()
     -- Load frame
-    for i=1, 7 do -- We have 7 sprites so we run it 7 times
+    for i=1, 9 do -- We have 7 sprites so we run it 7 times
         if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
             table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
         else
@@ -318,6 +325,36 @@ function _Tech:AddTurrets()
         local object = objManager:getObject(i)
         if object ~= nill and object.type == "obj_AI_Turret" and object.team == TEAM_ENEMY and not string.find(object.name, "TurretShrine") then
             table.insert(towers, object)
+        end
+    end
+end
+
+function _Tech:AddWards(object)
+    if object.team == TEAM_ENEMY and object.name == "SightWard" or object.name == "VisionWard" and (object.maxMana > 50 and obj.mana > 5) then
+        sightWards[#sightWards+1] = {Pos = object.pos, Time = ceil(object.mana + os.clock()), obj = object}
+    elseif object.team == TEAM_ENEMY and object.name == "VisionWard" then
+        visionWards[#visionWards+1] = {Pos = object.pos, obj = object}
+    end
+end
+
+function _Tech:DeleteWard(object)
+    if object.team ~= TEAM_ENEMY and object.name == "SightWard" or object.name == "Ward_sight_Idle.troy" or object.name == "Ward_Sight_Idle.troy" or object.name == "VisionWard" then
+        for i = 1, #sightWards do
+            if sightWards[i] == nil then return end
+            local wardObj = sightWards[i].obj
+
+            if wardObj == object then
+                table.remove(sightWards, i)
+            end
+        end
+    elseif object.team ~= TEAM_ENEMY and object.name == "VisionWard" then
+        for i = 1, #visionWards do
+            if visionWards[i] == nil then return end
+            local wardObj = visionWards[i].obj
+
+            if wardObj == object then
+                table.remove(visionWards, i)
+            end
         end
     end
 end
@@ -503,20 +540,20 @@ end
 
 function _Draw:Time()
     local currentDate = os.date("%c")
-    DrawText(""..currentDate, _Tech.Conf.OtherSettings.TimeSettings.textSize, _Tech.Conf.OtherSettings.TimeSettings.WidthPos,  _Tech.Conf.OtherSettings.TimeSettings.HeighthPos, 0xFFFFFFFF)
+    DrawText(""..currentDate, _Tech.Conf.TimeSettings.textSize, _Tech.Conf.TimeSettings.WidthPos,  _Tech.Conf.TimeSettings.HeighthPos, 0xFFFFFFFF)
 end
 
 function _Draw:TurretRange()
     local newColor
-    if _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 1 then
+    if _Tech.Conf.TowerSettings.TowerColor == 1 then
         newColor = 0xFFFF0000
-    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 2 then
+    elseif _Tech.Conf.TowerSettings.TowerColor == 2 then
         newColor = 0xFF219C00
-    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 3 then
+    elseif _Tech.Conf.TowerSettings.TowerColor == 3 then
         newColor = 0xFF00BAFF
-    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 4 then
+    elseif _Tech.Conf.TowerSettings.TowerColor == 4 then
         newColor = 0xFFFFFF00
-    elseif _Tech.Conf.OtherSettings.TowerSettings.TowerColor == 5 then
+    elseif _Tech.Conf.TowerSettings.TowerColor == 5 then
         newColor = 0xFF8A00FF
     else
         newColor = 0xFFFFFFFF
@@ -528,9 +565,46 @@ function _Draw:TurretRange()
         if towerObj and towerObj.health > 0 then
             local screenPos = WorldToScreen(towerObj.pos)
             if OnScreen(screenPos, screenPos) then
-                DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 865, 2, newColor, _Tech.Conf.OtherSettings.TowerSettings.TowerQual)
+                DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 865, 2, newColor, _Tech.Conf.TowerSettings.TowerQual)
             end
         end
+    end
+end
+
+function _Draw:Wards()
+    local function DrawSightWards(i)
+        local obj = sightWards[i]
+        if obj.Time > 0 then
+            local screenPos = WorldToScreen(obj.Pos)
+            if OnScreen(screenPos, screenPos) then
+                local timeLeft = ceil(obj.Time - os.clock())
+                DrawCircle3D(obj.Pos.x, obj.Pos.y, obj.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
+                DrawText("Sight ward\n".. timeLeft ,12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
+
+                frameSprites[8]:Draw(GetMinimapX(obj.Pos.x) - 5, GetMinimapY(obj.Pos.z) - 6, 255)
+            end
+        end
+    end
+
+     -- TODO FINISH
+    local function DrawVisionWard(i)
+        local obj = visionWards[i]
+        if obj then
+            local screenPos = WorldToScreen(obj.Pos)
+            if OnScreen(screenPos, screenPos) then
+                DrawCircle3D(obj.Pos.x, obj.Pos.y, obj.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
+                DrawText("Vision ward" ,12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
+                frameSprites[9]:Draw(GetMinimapX(obj.Pos.x) - 8, GetMinimapY(obj.Pos.z) - 4, 255)
+            end
+        end
+    end
+
+    for i = 1, #sightWards do
+        DrawSightWards(i)
+    end
+
+    for i = 1, #visionWards do
+        DrawVisionWard(i)
     end
 end
 
