@@ -58,7 +58,7 @@ function Xawareness:Load()
     ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
     ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
     ToUpdate.SavePath = SCRIPT_PATH.."/xawareness.lua"
-    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Welcome, Script updated to "..NewVersion..".") end
+    ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) _Tech:AddPrint("Welcome, Script updated to "..NewVersion..". Double tap F9") end
     ToUpdate.CallbackNoUpdate = function(OldVersion) _Tech:AddPrint("Welcome, no updates found, current version " .. ToUpdate.Version .. ".") end
     ToUpdate.CallbackNewVersion = function(NewVersion) _Tech:AddPrint("Welcome, new version found ("..NewVersion.."). Please wait until its downloaded") end
     ToUpdate.CallbackError = function(NewVersion) _Tech:AddPrint("Error while Downloading. Please try again.") end
