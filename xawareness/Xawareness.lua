@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.0922
+local scriptVersion = 1.0923
 local enemyHeroes = {}
 local allyHeroes = GetAllyHeroes()
 local towers = {}
@@ -340,7 +340,7 @@ end
 
 function _Tech:AddWards(object)
     if object ~= nil and object.name ~= nil then
-        if object.team == TEAM_ENEMY and (object.name == "SightWard" or object.name == "VisionWard" or object.name == "YellowTrinket") and object.maxMana >= 60 and object.mana > 5 then
+        if object.team == TEAM_ENEMY and (object.name == "SightWard" or object.name == "VisionWard" or object.name == "YellowTrinket" or object.name:find("Trinket")) and object.maxMana >= 60 and object.mana > 5 then
             sightWards[#sightWards+1] = {Pos = object.pos, Time = ceil(object.mana + GetGameTimer()), obj = object }
         elseif object.team == TEAM_ENEMY and object.name == "VisionWard" then
             visionWards[#visionWards+1] = {Pos = object.pos, obj = object}
@@ -369,6 +369,30 @@ function _Tech:DeleteWard(object)
             end
         end
     end
+end
+
+function _Tech:DrawCircle3D(x, y, z, radius, width, color, chordlength)
+    local vPos1 = Vector(x, y, z)
+    local vPos2 = Vector(cameraPos.x, cameraPos.y, cameraPos.z)
+    local tPos = vPos1 - (vPos1 - vPos2):normalized() * radius
+    local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
+    if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
+        self:DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
+    else
+    end
+end
+
+function _Tech:DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
+    radius = radius or 300
+    quality = chordlength
+    quality = 2 * math.pi / quality
+    radius = radius*.92
+    local points = {}
+    for theta = 0, 2 * math.pi + quality, quality do
+        local c = WorldToScreen(D3DXVECTOR3(x + radius * math.cos(theta), y, z - radius * math.sin(theta)))
+        points[#points + 1] = D3DXVECTOR2(c.x, c.y)
+    end
+    DrawLines2(points, width or 1, color or 4294967295)
 end
 
 Class("_Draw")
@@ -518,7 +542,7 @@ function _Draw:EnemyPath(unit)
 
             DrawLine3D(unit.x, unit.y, unit.z, path.x, path.y, path.z, 3, 0xFFCCFFF6)
             if _Tech.Conf.enemyPath.showTriangle then
-                DrawCircle3D(path.x, path.y, path.z, 20, 2, 0xFFCCFFF6, 3)
+                _Tech:DrawCircle3D(path.x, path.y, path.z, 20, 2, 0xFFCCFFF6, 3)
             end
 
             if _Tech.Conf.enemyPath.showTime then
@@ -577,7 +601,7 @@ function _Draw:TurretRange()
         if towerObj and towerObj.health > 0 then
             local screenPos = WorldToScreen(towerObj.pos)
             if OnScreen(screenPos, screenPos) then
-                DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 865, 2, newColor, _Tech.Conf.TowerSettings.TowerQual)
+                _Tech:DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 965, 2, newColor, _Tech.Conf.TowerSettings.TowerQual)
             end
         end
     end
@@ -591,7 +615,7 @@ function _Draw:Wards()
 
         local screenPos = WorldToScreen(object.Pos)
         if OnScreen(screenPos, screenPos) then
-            DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
+            _Tech:DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
             DrawText("Sight ward",12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
             DrawText(""..ceil(object.Time - GetGameTimer()),12 ,screenPos.x - 10 ,screenPos.y + 10 ,0xFFFFFFFF)
         end
@@ -604,7 +628,7 @@ function _Draw:Wards()
 
         local screenPos = WorldToScreen(object.Pos)
         if OnScreen(screenPos, screenPos) then
-            DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
+            _Tech:DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
             DrawText("Vision ward" ,12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
         end
         frameSprites[9]:Draw(GetMinimapX(object.Pos.x) - 8, GetMinimapY(object.Pos.z) - 4, 255)
