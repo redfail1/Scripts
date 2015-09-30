@@ -58,7 +58,7 @@ end
 
 function autoUpdate()
 	local ToUpdate = {}
-	ToUpdate.Version = 2
+	ToUpdate.Version = 1
 	ToUpdate.UseHttps = true
 	ToUpdate.Host = "raw.githubusercontent.com"
 	ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
