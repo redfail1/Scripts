@@ -58,19 +58,19 @@ end
 
 function autoUpdate()
 	local ToUpdate = {}
-	ToUpdate.Version = 1.11
+	ToUpdate.Version = 2
 	ToUpdate.UseHttps = true
 	ToUpdate.Host = "raw.githubusercontent.com"
-	ToUpdate.VersionPath = "/justh1n10/Scripts/master/zAwareness/ultHelper.version"
-	ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/zAwareness/zAwareness.lua"
-	ToUpdate.SavePath = SCRIPT_PATH.."/zawareness.lua"
-	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) printMsg("Updated to "..NewVersion..".") end
+	ToUpdate.VersionPath = "/justh1n10/Scripts/master/xawareness/Xawareness.version"
+	ToUpdate.ScriptPath =  "/justh1n10/Scripts/master/xawareness/Xawareness.lua"
+	ToUpdate.SavePath = SCRIPT_PATH.."/".._ENV.FILE_NAME
+	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) printMsg("Updated to xAwareness (replaced zAwareness)") end
 	ToUpdate.CallbackNoUpdate = function(OldVersion) printMsg("No Updates Found, Script version " .. ToUpdate.Version .. ".") end
-	ToUpdate.CallbackNewVersion = function(NewVersion) printMsg("New Version found ("..NewVersion.."). Please wait until its downloaded") end
-	ToUpdate.CallbackError = function(NewVersion) printMsg("Error while Downloading. Please try again.") end
+	ToUpdate.CallbackNewVersion = function(NewVersion) printMsg("New Version found xAwareness will be downloaded and will be replacing zAwareness.") end
+	ToUpdate.CallbackError = function(NewVersion) printMsg("Error while Downloading. Download xAwareness from the forum!") end
 	ScriptUpdate(ToUpdate.Version,ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
+	ScriptUpdate(ToUpdate.Version, ToUpdate.UseHttps, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, LIB_PATH.."/xawareness.lua", ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 end
-
 
 function OnLoad()
 	autoUpdate()
@@ -555,8 +555,8 @@ function drawPaths()
 end
 
 function round(num, idp)
-local mult = 10^(idp or 0)
-return math.floor(num * mult + 0.5) / mult
+	local mult = 10^(idp or 0)
+	return math.floor(num * mult + 0.5) / mult
 end
 
 
