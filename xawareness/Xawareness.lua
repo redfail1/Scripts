@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.101
+local scriptVersion = 1.102
 local enemyHeroes = {}
 local allyHeroes = GetAllyHeroes()
 local towers = {}
@@ -354,7 +354,7 @@ function _Tech:DeleteWard(object)
             if (object.name:find("Sight") or object.name:find("Trinket")) or (object.name:find("Vision") and object.maxMana == 180) then
                 for i = 1, #sightWards do
                     local ward = sightWards[i]
-                    if object == ward.obj then
+                    if ward ~= nil and object == ward.obj then
                         sightWards[i] = nil
                     end
                 end
@@ -363,7 +363,7 @@ function _Tech:DeleteWard(object)
             for i = 1, #visionWards do
                 local ward = visionWards[i]
 
-                if object == ward.obj then
+                if ward ~= nil and object == ward.obj then
                     visionWards[i] = nil
                 end
             end
@@ -378,7 +378,6 @@ function _Tech:DrawCircle3D(x, y, z, radius, width, color, chordlength)
     local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
     if OnScreen({ x = sPos.x, y = sPos.y }, { x = sPos.x, y = sPos.y }) then
         self:DrawCircleNextLvl(x, y, z, radius, width, color, chordlength)
-    else
     end
 end
 
@@ -401,7 +400,6 @@ function _Draw:enemyHUD()
     local textPosty = _Tech.Conf.HUDSettings.HeighthPos
 
     for i = 1, enemyCount do
-
         if heroSprites[i+enemyCount] == nil or heroSprites[i] == nil and updated then
             updated = false
             _Tech:AddPrint("Missing sprites, reloading sprites.")
@@ -445,7 +443,6 @@ function _Draw:enemyHUD()
                 elseif sum2cd < 100 then
                     textWdith = textWdith + 6
                 end
-
                 DrawText(""..ceil(sum2cd), 12, textPostx + textWdith, textPosty + 39, 0xFFFFFFFF)
             end
 
@@ -479,11 +476,9 @@ function _Draw:newHPBar()
             framePos.y = framePos.y - 30
 
             if OnScreen(framePos, framePos) then
-                -- Saving spelldata's 2 local var since we call them a lot
                 local sum1		= unit:GetSpellData(4)
                 local sum2		= unit:GetSpellData(5)
 
-                -- Summoner spell icons
                 summonerSprites[_Tech:RenameSums(sum1.name)]:Draw(framePos.x + 142.5, framePos.y + 1, 255)
                 summonerSprites[_Tech:RenameSums(sum2.name)]:Draw(framePos.x + 142.5, framePos.y + 28, 255)
 
@@ -508,7 +503,6 @@ function _Draw:newHPBar()
                     elseif sum2.currentCd < 100 then
                         textWdith = textWdith + 6
                     end
-
                     DrawText(""..ceil(sum2.currentCd), 12, framePos.x + textWdith + 136, framePos.y + 33, 0xFFFFFFFF)
                 end
 
@@ -558,7 +552,7 @@ end
 
 function _Draw:GankAlert(unit, i)
     local function DrawAlert(unit, i)
-        DrawText("Possible gank incoming: ".. unit.charName, _Tech.Conf.GAlertSettings.GankTextSize, WINDOW_W / 2 - 100, WINDOW_H / 5 + (i*_Tech.Conf.GAlertSettings.GankTextSize + 3), 0xFF2AFF00)
+        DrawText("Possible gank: ".. unit.charName, _Tech.Conf.GAlertSettings.GankTextSize, WINDOW_W / 2 - 150, WINDOW_H / 5 + (i*_Tech.Conf.GAlertSettings.GankTextSize + 3), 0xFF2AFF00)
     end
 
     if unit and not unit.dead and unit.visible and unit.hasMovePath and _Tech.Conf.GAlertSettings.IgnoreSettings["Show" .. unit.charName] then
