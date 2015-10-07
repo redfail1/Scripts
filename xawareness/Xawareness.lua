@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.103
+local scriptVersion = 1.105
 local enemyHeroes = {}
 local allyHeroes = GetAllyHeroes()
 local towers = {}
@@ -98,6 +98,16 @@ end
 
 function Xawareness:WndMsg(a, b)
     if not _Tech.Conf then return end
+    if enemyCount > 0 then
+        if _Tech.Conf.hpSettings.extraSettings.resetHUD and updated == true then
+            for i = 1, enemyCount do
+                local unit = enemyHeroes[i]
+                _Tech.Conf.hpSettings.extraSettings[unit.charName] = 0
+            end
+        end
+        _Tech.Conf.hpSettings.extraSettings.resetHUD = false
+    end
+
     if _Tech.Conf.SpriteSettings.UpdateSprites and updated == true then
         _Tech:AddPrint("Loaded sprites.")
         _Tech:ReloadSprites()
@@ -141,6 +151,16 @@ function _Tech:LoadMenu()
     self.Conf.hpSettings:addParam("drawHP", "Show cooldowns", SCRIPT_PARAM_ONOFF, true)
     self.Conf.hpSettings:addParam("drawAlly", "Show ally cooldowns", SCRIPT_PARAM_ONOFF, true)
     self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
+
+    -- Generates a few sliders in the menu to move enemy hpbar offsets
+    if enemyCount > 0 then
+        self.Conf.hpSettings:addSubMenu("> Customization", "extraSettings")
+        for i = 1, enemyCount do
+            local unit = enemyHeroes[i]
+            self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
+        end
+        self.Conf.hpSettings.extraSettings:addParam("resetHUD", "Reset positions", SCRIPT_PARAM_ONOFF, false)
+    end
 
     self.Conf:addSubMenu("> Enemy waypoint", "enemyPath")
     self.Conf.enemyPath:addParam("showPath", "Show enemy waypoints", SCRIPT_PARAM_ONOFF, true)
@@ -331,38 +351,38 @@ end
 
 function _Tech:AddTurrets()
     for i = 1, objManager.iCount do
-        local object = objManager:getObject(i)
-        if object ~= nill and object.type == "obj_AI_Turret" and object.team == TEAM_ENEMY and not string.find(object.name, "TurretShrine") then
-            table.insert(towers, object)
+        local turret = objManager:getObject(i)
+        if turret and turret.valid and turret.team == TEAM_ENEMY and turret.type == "obj_AI_Turret" and not string.find(turret.name, "TurretShrine") then
+            table.insert(towers, turret)
         end
     end
 end
 
-function _Tech:AddWards(object)
-    if object and object.valid and object.name ~= nil then
-        if object.team == TEAM_ENEMY and (object.name == "SightWard" or object.name == "VisionWard" or object.name == "YellowTrinket" or object.name:find("Trinket")) and object.maxMana >= 60 and object.mana > 5 then
-            sightWards[#sightWards+1] = {Pos = object.pos, Time = ceil(object.mana + GetGameTimer()), obj = object }
-        elseif object.team == TEAM_ENEMY and object.name == "VisionWard" then
-            visionWards[#visionWards+1] = {Pos = object.pos, obj = object}
+function _Tech:AddWards(Obj)
+    if Obj and Obj.valid and Obj.name then
+        if Obj.team == TEAM_ENEMY and (Obj.name == "SightWard" or Obj.name == "VisionWard" or Obj.name == "YellowTrinket" or Obj.name:find("Trinket")) and Obj.maxMana >= 60 and Obj.mana > 5 then
+            sightWards[#sightWards+1] = {Pos = Obj.pos, Time = ceil(Obj.mana + GetGameTimer()), obj = Obj }
+        elseif Obj.team == TEAM_ENEMY and Obj.name == "VisionWard" then
+            visionWards[#visionWards+1] = {Pos = Obj.pos, obj = Obj}
         end
     end
 end
 
-function _Tech:DeleteWard(object)
-    if object and object.valid and object.name ~= nil then
-        if object.team == TEAM_ENEMY and ((object.name:find("ward") or object.name:find("Trinket")) and not (object.name:find("Idle"))) then
-            if (object.name:find("Sight") or object.name:find("Trinket")) or (object.name:find("Vision") and object.maxMana == 180) then
+function _Tech:DeleteWard(Obj)
+    if Obj and Obj.valid and Obj.name then
+        if Obj.team == TEAM_ENEMY and ((Obj.name:find("ward") or Obj.name:find("Trinket")) and not Obj.name:find("Idle")) then
+            if (Obj.name:find("Sight") or Obj.name:find("Trinket")) or (Obj.name:find("Vision") and Obj.maxMana == 180) then
                 for i = 1, #sightWards do
                     local ward = sightWards[i]
-                    if ward and ward.obj.valid and object == ward.obj then
+                    if ward and ward.obj.valid and Obj == ward.obj then
                         sightWards[i] = nil
                     end
                 end
             end
-        elseif object.team == TEAM_ENEMY and object.name:find("Vision") then
+        elseif Obj.team == TEAM_ENEMY and Obj.name:find("Vision") then
             for i = 1, #visionWards do
                 local ward = visionWards[i]
-                if ward and ward.obj.valid and object == ward.obj then
+                if ward and ward.obj.valid and Obj == ward.obj then
                     visionWards[i] = nil
                 end
             end
@@ -470,9 +490,10 @@ function _Draw:newHPBar()
     for i = 1, championCount() do
         local unit = enemyHeroes[i] or allyHeroes[i-enemyCount]
 
-        if unit and not unit.dead and unit.visible then
+        if unit and not unit.dead and unit.visible and _Tech.Conf.hpSettings.extraSettings[unit.charName] then
             local framePos = _Tech:GetAbilityFramePos(unit)
-            framePos.y = framePos.y - 30
+            framePos.y = framePos.y - 30 + _Tech.Conf.hpSettings.extraSettings[unit.charName]
+
 
             if OnScreen(framePos, framePos) then
                 local sum1		= unit:GetSpellData(4)
@@ -601,30 +622,30 @@ function _Draw:TurretRange()
 end
 
 function _Draw:Wards()
-    local function DrawSightWards(object)
+    local function DrawSightWards(ward)
 
-        if object == nil then return end
-        if object.obj.health > 5 or object.obj.health <= 0 then return end
+        if ward == nil or not ward.obj.valid then return end
+        if ward.obj.health > 5 or ward.obj.health <= 0 then return end
 
-        local screenPos = WorldToScreen(object.Pos)
+        local screenPos = WorldToScreen(ward.Pos)
         if OnScreen(screenPos, screenPos) then
-            _Tech:DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
+            _Tech:DrawCircle3D(ward.Pos.x, ward.Pos.y, ward.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
             DrawText("Sight ward",12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
-            DrawText(""..ceil(object.Time - GetGameTimer()),12 ,screenPos.x - 10 ,screenPos.y + 10 ,0xFFFFFFFF)
+            DrawText(""..ceil(ward.Time - GetGameTimer()),12 ,screenPos.x - 10 ,screenPos.y + 10 ,0xFFFFFFFF)
         end
-        frameSprites[8]:Draw(GetMinimapX(object.Pos.x) - 5, GetMinimapY(object.Pos.z) - 6, 255)
+        frameSprites[8]:Draw(GetMinimapX(ward.Pos.x) - 5, GetMinimapY(ward.Pos.z) - 6, 255)
     end
 
-    local function DrawVisionWard(object)
-        if object == nil then return end
-        if object.obj.health > 5 or object.obj.health <= 0 then return end
+    local function DrawVisionWard(ward)
+        if ward == nil or not ward.obj.valid then return end
+        if ward.obj.health > 5 or ward.obj.health <= 0 then return end
 
-        local screenPos = WorldToScreen(object.Pos)
+        local screenPos = WorldToScreen(ward.Pos)
         if OnScreen(screenPos, screenPos) then
-            _Tech:DrawCircle3D(object.Pos.x, object.Pos.y, object.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
+            _Tech:DrawCircle3D(ward.Pos.x, ward.Pos.y, ward.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
             DrawText("Vision ward" ,12 ,screenPos.x - 25 ,screenPos.y ,0xFFFFFFFF)
         end
-        frameSprites[9]:Draw(GetMinimapX(object.Pos.x) - 8, GetMinimapY(object.Pos.z) - 4, 255)
+        frameSprites[9]:Draw(GetMinimapX(ward.Pos.x) - 8, GetMinimapY(ward.Pos.z) - 4, 255)
     end
 
     for i = 1, #sightWards do
