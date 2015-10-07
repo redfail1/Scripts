@@ -9,8 +9,8 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.105
-local enemyHeroes = {}
+local scriptVersion = 1.106
+local enemyHeroes = GetEnemyHeroes()
 local allyHeroes = GetAllyHeroes()
 local towers = {}
 local enemyCount
@@ -98,13 +98,25 @@ end
 
 function Xawareness:WndMsg(a, b)
     if not _Tech.Conf then return end
-    if enemyCount > 0 then
-        if _Tech.Conf.hpSettings.extraSettings.resetHUD and updated == true then
-            for i = 1, enemyCount do
-                local unit = enemyHeroes[i]
-                _Tech.Conf.hpSettings.extraSettings[unit.charName] = 0
+    if (enemyCount + allyCount) > 0 then
+        if enemyCount > 0 then
+            if _Tech.Conf.hpSettings.extraSettings.resetHUD and updated == true then
+                for i = 1, enemyCount do
+                    local unit = enemyHeroes[i]
+                    _Tech.Conf.hpSettings.extraSettings[unit.charName] = 0
+                end
             end
         end
+
+        if allyCount > 0 then
+            if _Tech.Conf.hpSettings.extraSettings.resetHUD and updated == true then
+                for i = 1, allyCount do
+                    local unit = allyHeroes[i]
+                    _Tech.Conf.hpSettings.extraSettings[unit.charName] = 0
+                end
+            end
+        end
+
         _Tech.Conf.hpSettings.extraSettings.resetHUD = false
     end
 
@@ -153,12 +165,25 @@ function _Tech:LoadMenu()
     self.Conf.hpSettings:addParam("hideCool", "Hide text timers", SCRIPT_PARAM_ONOFF, false)
 
     -- Generates a few sliders in the menu to move enemy hpbar offsets
-    if enemyCount > 0 then
+    if (enemyCount + allyCount) > 0 then
         self.Conf.hpSettings:addSubMenu("> Customization", "extraSettings")
-        for i = 1, enemyCount do
-            local unit = enemyHeroes[i]
-            self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
+
+        if enemyCount > 0 then
+            self.Conf.hpSettings.extraSettings:addParam("empty","Enemy Team", 5, "")
+            for i = 1, enemyCount do
+                local unit = enemyHeroes[i]
+                self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
+            end
+            self.Conf.hpSettings.extraSettings:addParam("empty","", 5, "")
         end
+            if allyCount > 0 then
+                self.Conf.hpSettings.extraSettings:addParam("empty","Ally Team", 5, "")
+                for i = 1, allyCount do
+                    local unit = allyHeroes[i]
+                    self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
+                end
+            end
+        self.Conf.hpSettings.extraSettings:addParam("empty","", 5, "")
         self.Conf.hpSettings.extraSettings:addParam("resetHUD", "Reset positions", SCRIPT_PARAM_ONOFF, false)
     end
 
