@@ -235,7 +235,7 @@ function _Tech:LoadMenu()
 end
 
 function _Tech:AddPrint(msg)
-    PrintChat("<font color = \"#0078FF\">[XiviAwareness] </font><font color = \"#FFFFFF\">".. msg .."</font>")
+    PrintChat("<font color = \"#0078FF\">[xAwareness] </font><font color = \"#FFFFFF\">".. msg .."</font>")
 end
 
 function _Tech:RenameSums(str)
