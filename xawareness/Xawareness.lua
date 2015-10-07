@@ -9,8 +9,8 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.106
-local enemyHeroes = GetEnemyHeroes()
+local scriptVersion = 1.11
+local enemyHeroes = {}
 local allyHeroes = GetAllyHeroes()
 local towers = {}
 local enemyCount
@@ -169,21 +169,21 @@ function _Tech:LoadMenu()
         self.Conf.hpSettings:addSubMenu("> Customization", "extraSettings")
 
         if enemyCount > 0 then
-            self.Conf.hpSettings.extraSettings:addParam("empty","Enemy Team", 5, "")
+            self.Conf.hpSettings.extraSettings:addParam("empty1","Enemy Team", 5, "")
             for i = 1, enemyCount do
                 local unit = enemyHeroes[i]
                 self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
             end
-            self.Conf.hpSettings.extraSettings:addParam("empty","", 5, "")
+            self.Conf.hpSettings.extraSettings:addParam("empty2","", 5, "")
         end
             if allyCount > 0 then
-                self.Conf.hpSettings.extraSettings:addParam("empty","Ally Team", 5, "")
+                self.Conf.hpSettings.extraSettings:addParam("empty3","Ally Team", 5, "")
                 for i = 1, allyCount do
                     local unit = allyHeroes[i]
                     self.Conf.hpSettings.extraSettings:addParam(unit.charName, "Height "..unit.charName , SCRIPT_PARAM_SLICE , 0, -100, 100, 1)
                 end
             end
-        self.Conf.hpSettings.extraSettings:addParam("empty","", 5, "")
+        self.Conf.hpSettings.extraSettings:addParam("empty4","", 5, "")
         self.Conf.hpSettings.extraSettings:addParam("resetHUD", "Reset positions", SCRIPT_PARAM_ONOFF, false)
     end
 
@@ -276,26 +276,26 @@ end
 function _Tech:LoadOtherSprites()
     -- Load frame
     for i=1, 9 do -- We have 7 sprites so we run it 7 times
-        if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
-            table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
-        else
-            self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 9 ")
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
-            frameSprites = {}
-            return;
-        end
+    if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
+        table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
+    else
+        self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 9 ")
+        DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
+        frameSprites = {}
+        return;
+    end
     end
 
     -- Load summoner spell icons
     for i=1, 18 do -- We have 18 sprites so we run it 18 times
-        if FileExist(SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png") then
-            table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
-        else
-            self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
-            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
-            summonerSprites = {}
-            return;
-        end
+    if FileExist(SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png") then
+        table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
+    else
+        self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
+        DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
+        summonerSprites = {}
+        return;
+    end
     end
     updated = true
 end
@@ -334,20 +334,20 @@ function _Tech:GetAbilityFramePos(unit)
     local barOffset = GetUnitHPBarOffset(unit)
 
     do -- For some reason the x and y offset never exists
-        local t = {
-            ["Darius"] = -0.05,
-            ["Renekton"] = -0.05,
-            ["Sion"] = -0.05,
-            ["Thresh"] = -0.03,
-        }
-        barOffset.x = t[unit.charName] or barOffset.x
+    local t = {
+        ["Darius"] = -0.05,
+        ["Renekton"] = -0.05,
+        ["Sion"] = -0.05,
+        ["Thresh"] = -0.03,
+    }
+    barOffset.x = t[unit.charName] or barOffset.x
 
-        local r ={
-            ["XinZhao"] = 1,
-            ["Velkoz"] = -2.65,
-            ["Darius"] = -0.33,
-        }
-        barOffset.y = r[unit.charName] or barOffset.y
+    local r ={
+        ["XinZhao"] = 1,
+        ["Velkoz"] = -2.65,
+        ["Darius"] = -0.33,
+    }
+    barOffset.y = r[unit.charName] or barOffset.y
     end
 
     return D3DXVECTOR2(barPos.x + barOffset.x * 150 - 70, barPos.y + barOffset.y * 50 + 13)
