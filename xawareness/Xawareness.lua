@@ -488,7 +488,7 @@ function _Draw:newHPBar()
     end
 
     for i = 1, championCount() do
-        local unit = enemyHeroes[i] or allyHeroes[i-enemyCount]
+        local unit = enemyHeroes[i] or allyHeroes[i - enemyCount]
 
         if unit and not unit.dead and unit.visible and _Tech.Conf.hpSettings.extraSettings[unit.charName] then
             local framePos = _Tech:GetAbilityFramePos(unit)
