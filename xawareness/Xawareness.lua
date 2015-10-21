@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.11
+local scriptVersion = 1.12
 local enemyHeroes = {}
 local allyHeroes = GetAllyHeroes()
 local towers = {}
@@ -25,7 +25,7 @@ local updated = false
 local loadedChamps = false
 
 -- math
-local ceil = math.ceil
+local ceil, floor, round = math.ceil, math.floor, math.round
 
 -- Made by Nebelwolfi to make classes local and not global
 function Class(name)
@@ -89,10 +89,11 @@ function Xawareness:Draw()
     if _Tech.Conf.TowerSettings.TowerOn then _Draw:TurretRange() end
     if _Tech.Conf.enemyWards.showWards then _Draw:Wards() end
 
-    for i = 1, #enemyHeroes do
+    for i = 1, enemyCount do
         local unit = enemyHeroes[i]
         if _Tech.Conf.enemyPath.showPath then _Draw:EnemyPath(unit) end
         if _Tech.Conf.GAlertSettings.GankAlertOn then _Draw:GankAlert(unit, i) end
+        if _Tech.Conf.ArrowSettings["Show" .. unit.charName] then _Draw:ArrowInfo(unit, i) end
     end
 end
 
@@ -203,6 +204,16 @@ function _Tech:LoadMenu()
         end
     end
 
+    self.Conf:addSubMenu("> Arrow information", "ArrowSettings")
+
+    -- Generates a few buttons in the menu that show the enemy names
+    if enemyCount > 0 then
+        for i = 1, enemyCount do
+            local unit = enemyHeroes[i]
+            self.Conf.ArrowSettings:addParam("Show"..unit.charName, "Show "..unit.charName , SCRIPT_PARAM_ONOFF, false)
+        end
+    end
+
     self.Conf.GAlertSettings:addParam("GankAlertOn", "Gank alert", SCRIPT_PARAM_ONOFF, true)
     self.Conf.GAlertSettings:addParam("GankAlertDistance", "Maximal detection radius", SCRIPT_PARAM_SLICE , 3600, 500, 10000, 0)
     self.Conf.GAlertSettings:addParam("GankAlertMinDistance", "Minimal detection radius", SCRIPT_PARAM_SLICE , 1200, 300, 1750, 0)
@@ -276,26 +287,26 @@ end
 function _Tech:LoadOtherSprites()
     -- Load frame
     for i=1, 9 do -- We have 7 sprites so we run it 7 times
-    if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
-        table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
-    else
-        self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 9 ")
-        DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
-        frameSprites = {}
-        return;
-    end
+        if FileExist(SPRITE_PATH.."Xawareness//others//"..i..".png") then
+            table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Others ".. i .. " / 9 ")
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//others//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
+            frameSprites = {}
+            return;
+        end
     end
 
     -- Load summoner spell icons
     for i=1, 18 do -- We have 18 sprites so we run it 18 times
-    if FileExist(SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png") then
-        table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
-    else
-        self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
-        DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
-        summonerSprites = {}
-        return;
-    end
+        if FileExist(SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png") then
+            table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
+        else
+            self:AddPrint("Downloading missing sprite in folder: Summoner_spells ".. i .. " / 18 ")
+            DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/"..i..".png?no-cache="..math.random(1, 25000), SPRITE_PATH.."Xawareness//Summoner_spells//"..i..".png", function() DelayAction(function() self:LoadOtherSprites() end, 0.15) end)
+            summonerSprites = {}
+            return;
+        end
     end
     updated = true
 end
@@ -585,7 +596,7 @@ function _Draw:EnemyPath(unit)
             end
 
             if _Tech.Conf.enemyPath.showTime then
-                local delay = math.round((distance / unitMoveSpeed)*10)*0.1
+                local delay = round((distance / unitMoveSpeed)*10)*0.1
 
                 DrawText(unit.charName.." "..delay, 14, endLinePosition.x, endLinePosition.y + 14, 0xFFCCFFF6)
             else
@@ -600,7 +611,7 @@ function _Draw:GankAlert(unit, i)
         DrawText("Possible gank: ".. unit.charName, _Tech.Conf.GAlertSettings.GankTextSize, WINDOW_W / 2 - 150, WINDOW_H / 5 + (i*_Tech.Conf.GAlertSettings.GankTextSize + 3), 0xFF2AFF00)
     end
 
-    if unit and not unit.dead and unit.visible and unit.hasMovePath and _Tech.Conf.GAlertSettings.IgnoreSettings["Show" .. unit.charName] then
+    if unit and unit.valid and not unit.dead and unit.visible and unit.hasMovePath and _Tech.Conf.GAlertSettings.IgnoreSettings["Show" .. unit.charName] then
         local enemyDistance = GetDistance(myHero, unit)
         if enemyDistance <= _Tech.Conf.GAlertSettings.GankAlertDistance and enemyDistance >= _Tech.Conf.GAlertSettings.GankAlertMinDistance then
             if unit.path.count > 1 then
@@ -679,6 +690,50 @@ function _Draw:Wards()
 
     for i = 1, #visionWards do
         DrawVisionWard(visionWards[i])
+    end
+end
+
+-- _Draw:Arrow made by Bilbao <3
+function _Draw:Arrow(pStart, pEnd, distToRot, distToLine, lineWidth, color)
+    local pSV, pEV = Vector(pStart), Vector(pEnd)
+    local pAVM = pEV + (Vector(pSV) - pEV):normalized() * distToRot
+    local V = Vector(pAVM) - Vector(pSV)
+    local P = V:perpendicular2():normalized()
+    local x, y, z = P:unpack()
+
+    local pAV_L = Vector(pAVM.x + (x *distToLine), pAVM.y + (y *distToLine), pAVM.z + (z *distToLine))
+    local pAV_R = Vector(pAVM.x - (x * distToLine), pAVM.y - (y * distToLine), pAVM.z - (z * distToLine))
+
+    DrawLine3D(pSV.x, pSV.y, pSV.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
+    DrawLine3D(pAV_L.x, pAV_L.y, pAV_L.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
+    DrawLine3D(pAV_R.x, pAV_R.y, pAV_R.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
+end
+
+-- We use this in the "ArrowInfo" function.
+local colorTable = {
+    [1] = 0x90ECFF00,
+    [2] = 0x9000FBE9,
+    [3] = 0x90FF6F00,
+    [4] = 0x90C008FB,
+    [5] = 0x90FFFFFF
+}
+
+function _Draw:ArrowInfo(unit, i)
+    if _Tech.Conf.ArrowSettings["Show" .. unit.charName] then
+        if not unit or not unit.valid or not unit.visible or unit.dead or myHero.dead then return end
+        local newPoint = Vector(myHero.x, myHero.y, myHero.z) + (Vector(unit.pos.x, unit.pos.y, unit.pos.z) - Vector(myHero.x, myHero.y, myHero.z)):normalized() * 500
+        local endLinePosition = WorldToScreen(D3DXVECTOR3(newPoint.x, newPoint.y, newPoint.z))
+
+        if OnScreen(endLinePosition.x, endLinePosition.y) then
+            local unitMoveSpeed = unit.ms
+            local distance =  GetDistance(unit, myHero.pos)
+
+            if distance < 500 then return end
+            local delay = round((distance / unitMoveSpeed)*10)*0.1
+
+            _Draw:Arrow(myHero.pos, newPoint, 75, 50, 3, colorTable[i])
+            DrawText("Seconds: " .. delay .. " ".. unit.charName .. "\nDistance: " .. round(distance) .. " units",  14, endLinePosition.x - 100, endLinePosition.y + 30, colorTable[i])
+        end
     end
 end
 
@@ -767,7 +822,7 @@ function ScriptUpdate:GetOnlineVersion()
             local ScriptEnd = self.File:find('</scr'..'ipt>')
             if ScriptEnd then ScriptEnd = ScriptEnd - 1 end
             local DownloadedSize = self.File:sub(ScriptFind+1,ScriptEnd or -1):len()
-            self.DownloadStatus = 'Downloading VersionInfo ('..math.round(100/self.Size*DownloadedSize,2)..'%)'
+            self.DownloadStatus = 'Downloading VersionInfo ('..round(100/self.Size*DownloadedSize,2)..'%)'
         end
     end
     if self.File:find('</scr'..'ipt>') then
@@ -828,7 +883,7 @@ function ScriptUpdate:DownloadUpdate()
             local ScriptEnd = self.File:find('</scr'..'ipt>')
             if ScriptEnd then ScriptEnd = ScriptEnd - 1 end
             local DownloadedSize = self.File:sub(ScriptFind+1,ScriptEnd or -1):len()
-            self.DownloadStatus = 'Downloading Script ('..math.round(100/self.Size*DownloadedSize,2)..'%)'
+            self.DownloadStatus = 'Downloading Script ('..round(100/self.Size*DownloadedSize,2)..'%)'
         end
     end
     if self.File:find('</scr'..'ipt>') then
