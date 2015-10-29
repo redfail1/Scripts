@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.13
+local scriptVersion = 1.131
 local enemyHeroes = { }
 local allyHeroes = GetAllyHeroes()
 local towers = { }
@@ -104,6 +104,8 @@ function Xawareness:Draw()
         if _Tech.Conf.ArrowSettings.UseArrow and _Tech.Conf.ArrowSettings["Show" .. unit.charName] then
             _Draw:ArrowInfo(unit, i)
         end
+
+        if _Tech.Conf.miaSettings.miaOn then _Draw:Missing(unit, i) end
     end
 end
 
@@ -212,7 +214,7 @@ function _Tech:LoadMenu()
     self.Conf.ArrowSettings:addParam("advancedPath", "Use advanced calculation (accurate data)", SCRIPT_PARAM_ONOFF, false)
     self.Conf.ArrowSettings:addParam("extraInfo", "Advanced calculations are FPS heavy.", 5, "")
     self.Conf.ArrowSettings:addParam("Info", "_____________________", 5, "")
-    --self.Conf:addParam("Info", "_____________________", 5, "")
+
     -- Generates a few buttons in the menu that show the enemy names
     if enemyCount > 0 then
         self.Conf.ArrowSettings:addParam("Info", "Champions:", 5, "")
@@ -223,6 +225,10 @@ function _Tech:LoadMenu()
     else
         self.Conf.ArrowSettings:addParam("extraInfo", "No enemies found.", 5, "")
     end
+
+    self.Conf:addSubMenu("> Missing in action", "miaSettings")
+    self.Conf.miaSettings:addParam("miaOn", "Missing in action", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.miaSettings:addParam("miaTimeOn", "Show timers", SCRIPT_PARAM_ONOFF, true)
 
     self.Conf.GAlertSettings:addParam("GankAlertOn", "Gank alert", SCRIPT_PARAM_ONOFF, true)
     self.Conf.GAlertSettings:addParam("GankAlertDistance", "Maximal detection radius", SCRIPT_PARAM_SLICE, 3600, 500, 10000, 0)
@@ -500,6 +506,7 @@ function _Draw:enemyHUD()
             local sum2cd = unit:GetSpellData(5).currentCd
 
             if unit.dead or not unit.visible and heroSprites[i + enemyCount] ~= nil then
+                heroSprites[i + enemyCount]:SetScale(1, 1)
                 heroSprites[i + enemyCount]:Draw(textPostx + 20, textPosty + 6, 255)
             elseif heroSprites[i] ~= nil then
                 heroSprites[i]:Draw(textPostx + 20, textPosty + 6, 255)
@@ -554,7 +561,7 @@ end
 
 function _Draw:newHPBar()
     local function championCount()
-        return 0 + (_Tech.Conf.hpSettings.drawAlly and allyCount or 0) + enemyCount
+        return 0 +(_Tech.Conf.hpSettings.drawAlly and allyCount or 0) + enemyCount
     end
 
     for i = 1, championCount() do
@@ -682,7 +689,7 @@ function _Draw:TurretRange()
     for i = 1, towerCount do
         local towerObj = towers[i]
 
-        if towerObj and towerObj.health > 0 then
+        if towerObj and towerObj.valid and towerObj.health > 0 then
             local screenPos = WorldToScreen(towerObj.pos)
             if OnScreen(screenPos, screenPos) then
                 _Tech:DrawCircle3D(towerObj.x, towerObj.y, towerObj.z, 965, 2, newColor, _Tech.Conf.TowerSettings.TowerQual)
@@ -781,6 +788,33 @@ function _Draw:ArrowInfo(unit, i)
             _Tech:Arrow(myHero.pos, newPoint, 75, 50, 3, colorTable[i])
             DrawText("Seconds: " .. delay .. " " .. unit.charName .. "\nDistance: " .. distance .. " units", 14, endLinePosition.x - 100, endLinePosition.y + 30, colorTable[i])
         end
+    end
+end
+
+local miaTable = { }
+function _Draw:Missing(unit, i)
+    if not unit.valid or unit.dead then return end
+    local currentID = i + enemyCount
+    local unitID = unit.networkID
+
+    if miaTable[unitID] == nil then miaTable[unitID] = { mia = false, lastSeen = 0 } end
+    if not unit.visible then
+        if heroSprites[currentID] ~= nil then
+            local miniMapX, miniMapY = GetMinimapX(unit.pos.x), GetMinimapY(unit.pos.z)
+            if miaTable[unitID].mia == false then
+                miaTable[unitID].lastSeen = GetGameTimer()
+                miaTable[unitID].mia = true
+            end
+
+            heroSprites[currentID]:SetScale(0.47, 0.47)
+            heroSprites[currentID]:Draw((miniMapX - 16),(miniMapY - 11), 255)
+
+            if _Tech.Conf.miaSettings.miaTimeOn then
+                DrawText("" .. ceil(GetGameTimer() - miaTable[unitID].lastSeen), 14,(miniMapX - 10),(miniMapY - 5), 0xFFFF0000)
+            end
+        end
+    elseif unit.visible and miaTable[unitID].mia then
+        miaTable[unitID].mia = false
     end
 end
 
