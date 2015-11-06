@@ -9,7 +9,7 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.131
+local scriptVersion = 1.132
 local enemyHeroes = { }
 local allyHeroes = GetAllyHeroes()
 local towers = { }
@@ -23,6 +23,23 @@ local sightWards = { }
 local visionWards = { }
 local updated = false
 local loadedChamps = false
+
+local JungleTroys = {
+    Baron = {
+        troyName    = "SRU_Baron_Death.troy", -- Credits to RedPrince for the troy names
+        startTime   = 1200,
+        spawnTime   = 420,
+        currentTime = 0,
+        minimapX    = 0,
+        minimapY    = 0},
+    Dragon = {
+        troyName    = "SRU_JungleBuff_Dragon_Activation_Buf.troy", -- Credits to RedPrince for the troy names
+        startTime   = 150,
+        spawnTime   = 360,
+        currentTime = 0,
+        minimapX    = 0,
+        minimapY    = 0},
+}
 
 -- math
 local ceil, floor, round = math.ceil, math.floor, math.round
@@ -46,8 +63,8 @@ function Xawareness:__init(cfg)
     AddMsgCallback( function(a, b) self:WndMsg(a, b) end)
     AddDrawCallback( function() self:Draw() end)
     AddUnloadCallback( function() self:Unload() end)
-    AddCreateObjCallback( function(obj) _Tech:AddWards(obj) end)
-    AddDeleteObjCallback( function(obj) _Tech:DeleteWard(obj) end)
+    AddCreateObjCallback( function(obj) self:OnNewObject(obj) end)
+    AddDeleteObjCallback( function(obj) self:OnDelObject(obj) end)
 end
 
 function Xawareness:Load()
@@ -77,6 +94,8 @@ function Xawareness:ActualOnLoad()
     _Tech:LoadMenu()
     _Tech:AddTurrets()
     towerCount = #towers
+
+    self:LoadJungleMinimap()
 end
 
 -- We're localising the table because other scripts might manipulaite their table causing weird issues.
@@ -107,6 +126,8 @@ function Xawareness:Draw()
 
         if _Tech.Conf.miaSettings.miaOn then _Draw:Missing(unit, i) end
     end
+
+    _Draw:JungleTimers()
 end
 
 function Xawareness:WndMsg(a, b)
@@ -152,6 +173,19 @@ function Xawareness:Unload()
     for i = 1, #heroSprites do
         heroSprites[i]:Release();
     end
+end
+
+function Xawareness:LoadJungleMinimap()
+    JungleTroys.Baron.minimapX, JungleTroys.Baron.minimapY = GetMinimapX(4550), GetMinimapY(10700)
+    JungleTroys.Dragon.minimapX, JungleTroys.Dragon.minimapY = GetMinimapX(9400), GetMinimapY(4900)
+end
+function Xawareness:OnDelObject(obj)
+    _Tech:DeleteWard(obj)
+end
+
+function Xawareness:OnNewObject(obj)
+    _Tech:AddWards(obj)
+    _Tech:CheckJungleBuff(obj)
 end
 
 Class("_Tech")
@@ -239,6 +273,10 @@ function _Tech:LoadMenu()
     self.Conf.GAlertSettings:addParam("extraInfo1", "Default Min Detection radius: 1200", 5, "")
     self.Conf.GAlertSettings:addParam("extraInfo2", "Default text size: 18", 5, "")
 
+    self.Conf:addSubMenu("> Jungle timers", "JungleSettings")
+    self.Conf.JungleSettings:addParam("DragOn", "Show Dragon timer", SCRIPT_PARAM_ONOFF, true)
+    self.Conf.JungleSettings:addParam("BarOn", "Show Baron timer", SCRIPT_PARAM_ONOFF, true)
+
     self.Conf:addSubMenu("> Enemy wards", "enemyWards")
     self.Conf.enemyWards:addParam("showWards", "Show enemy wards", SCRIPT_PARAM_ONOFF, true)
     self.Conf.enemyWards:addParam("wardQual", "Circle quality", SCRIPT_PARAM_SLICE, 8, 4, 16, 0)
@@ -310,7 +348,7 @@ function _Tech:LoadOtherSprites()
         if FileExist(SPRITE_PATH .. "Xawareness//others//" .. i .. ".png") then
             table.insert(frameSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\others\\" .. i .. ".png"))
         else
-            self:AddPrint("Downloading missing sprite in folder: Others " .. i .. " / 9 ")
+            self:AddPrint("Downloading missing sprite in folder: Others " .. i .. " / 9, DO NOT RELOAD THE SCRIPT!")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/others/" .. i .. ".png?no-cache=" .. math.random(1, 25000), SPRITE_PATH .. "Xawareness//others//" .. i .. ".png", function() DelayAction( function() self:LoadOtherSprites() end, 0.15) end)
             frameSprites = { }
             return;
@@ -323,7 +361,7 @@ function _Tech:LoadOtherSprites()
         if FileExist(SPRITE_PATH .. "Xawareness//Summoner_spells//" .. i .. ".png") then
             table.insert(summonerSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Summoner_spells\\" .. i .. ".png"))
         else
-            self:AddPrint("Downloading missing sprite in folder: Summoner_spells " .. i .. " / 18 ")
+            self:AddPrint("Downloading missing sprite in folder: Summoner_spells " .. i .. " / 18, DO NOT RELOAD THE SCRIPT!")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Summoner_spells/" .. i .. ".png?no-cache=" .. math.random(1, 25000), SPRITE_PATH .. "Xawareness//Summoner_spells//" .. i .. ".png", function() DelayAction( function() self:LoadOtherSprites() end, 0.15) end)
             summonerSprites = { }
             return;
@@ -338,7 +376,7 @@ function _Tech:ImportHeroSprites()
         if FileExist(SPRITE_PATH .. "Xawareness//Hero_round//" .. v.charName .. ".png") then
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round\\" .. v.charName .. ".png"))
         else
-            self:AddPrint("Downloading missing sprite in folder: Hero_round " .. v.charName)
+            self:AddPrint("Downloading missing sprite in folder: Hero_round " .. v.charName .. ", DO NOT RELOAD THE SCRIPT!")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round/" .. v.charName .. ".png?no-cache=" .. math.random(1, 25000), SPRITE_PATH .. "Xawareness//Hero_round//" .. v.charName .. ".png", function() DelayAction( function() self:ImportHeroSprites() end, 0.15) end)
             heroSprites = { }
             return;
@@ -350,7 +388,7 @@ function _Tech:ImportHeroSprites()
         if FileExist(SPRITE_PATH .. "Xawareness//Hero_round_grey//" .. v.charName .. ".png") then
             table.insert(heroSprites, createSprite(SPRITE_PATH .. "\\Xawareness\\Hero_round_grey\\" .. v.charName .. ".png"))
         else
-            self:AddPrint("Downloading missing sprite in folder: Hero_round_grey " .. v.charName)
+            self:AddPrint("Downloading missing sprite in folder: Hero_round_grey " .. v.charName .. ", DO NOT RELOAD THE SCRIPT!")
             DownloadFile("https://raw.githubusercontent.com/justh1n10/Scripts/master/xawareness/Hero_round_grey/" .. v.charName .. ".png?no-cache=" .. math.random(1, 25000), SPRITE_PATH .. "Xawareness//Hero_round_grey//" .. v.charName .. ".png", function() DelayAction( function() self:ImportHeroSprites() end, 0.15) end)
             heroSprites = { }
             return;
@@ -485,6 +523,14 @@ function _Tech:Arrow(pStart, pEnd, distToRot, distToLine, lineWidth, color)
     DrawLine3D(pSV.x, pSV.y, pSV.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
     DrawLine3D(pAV_L.x, pAV_L.y, pAV_L.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
     DrawLine3D(pAV_R.x, pAV_R.y, pAV_R.z, pEV.x, pEV.y, pEV.z, lineWidth, color)
+end
+
+function _Tech:CheckJungleBuff(obj)
+    if obj.name == JungleTroys.Baron.troyName then
+        JungleTroys.Baron.currentTime = ceil(GetInGameTimer() + JungleTroys.Baron.spawnTime)
+    elseif obj.name == JungleTroys.Dragon.troyName then
+        JungleTroys.Dragon.currentTime = ceil(GetInGameTimer() + JungleTroys.Dragon.spawnTime)
+    end
 end
 
 Class("_Draw")
@@ -810,11 +856,35 @@ function _Draw:Missing(unit, i)
             heroSprites[currentID]:Draw((miniMapX - 16),(miniMapY - 11), 255)
 
             if _Tech.Conf.miaSettings.miaTimeOn then
-                DrawText("" .. ceil(GetGameTimer() - miaTable[unitID].lastSeen), 14,(miniMapX - 10),(miniMapY - 5), 0xFFFF0000)
+                DrawText("" .. ceil(GetGameTimer() - miaTable[unitID].lastSeen), 14,(miniMapX - 10),(miniMapY - 5), 0xFFFFFF00)
             end
         end
     elseif unit.visible and miaTable[unitID].mia then
         miaTable[unitID].mia = false
+    end
+end
+
+function _Draw:JungleTimers()
+    local GameTime = floor(GetInGameTimer() - 20)
+
+    if _Tech.Conf.JungleSettings.BarOn then
+        if GameTime < JungleTroys.Baron.startTime then
+            JungleTroys.Baron.currentTime = floor(JungleTroys.Baron.startTime - GameTime)
+            DrawText("" .. JungleTroys.Baron.currentTime , 11, JungleTroys.Baron.minimapX, JungleTroys.Baron.minimapY, 0xFFFFFFFF)
+        elseif JungleTroys.Baron.currentTime > GameTime then
+            local displayCount = floor(GameTime - JungleTroys.Baron.currentTime)
+            DrawText("" .. displayCount , 11, JungleTroys.Baron.minimapX, JungleTroys.Baron.minimapY, 0xFFFFFFFF)
+        end
+    end
+
+    if _Tech.Conf.JungleSettings.DragOn then
+        if GameTime < JungleTroys.Dragon.startTime then
+            JungleTroys.Dragon.currentTime = floor(JungleTroys.Dragon.startTime - GameTime)
+            DrawText("" .. JungleTroys.Dragon.currentTime , 11, JungleTroys.Dragon.minimapX, JungleTroys.Dragon.minimapY, 0xFFFFFFFF)
+        elseif JungleTroys.Dragon.currentTime > GameTime then
+            local displayCount = floor(GameTime - JungleTroys.Dragon.currentTime)
+            DrawText("" .. displayCount , 11, JungleTroys.Dragon.minimapX, JungleTroys.Dragon.minimapY, 0xFFFFFFFF)
+        end
     end
 end
 
