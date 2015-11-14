@@ -9,9 +9,9 @@
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
 
-local scriptVersion = 1.133
+local scriptVersion = 1.134
 local enemyHeroes = { }
-local allyHeroes = GetAllyHeroes()
+local allyHeroes = { }
 local towers = { }
 local enemyCount
 local allyCount
@@ -23,6 +23,7 @@ local sightWards = { }
 local visionWards = { }
 local updated = false
 local loadedChamps = false
+local colorTable = { [1] = 0x90ECFF00, [2] = 0x9000FBE9, [3] = 0x90FF6F00, [4] = 0x90C008FB, [5] = 0x90FFFFFF }
 
 local JungleTroys = {
     Baron = {
@@ -103,6 +104,10 @@ function Xawareness:LocaliseTable()
     for _, enemy in pairs(GetEnemyHeroes()) do
         table.insert(enemyHeroes, enemy)
     end
+
+    for _, enemy in pairs(GetAllyHeroes()) do
+        table.insert(allyHeroes, enemy)
+    end
 end
 
 function Xawareness:Draw()
@@ -125,6 +130,8 @@ function Xawareness:Draw()
         end
 
         if _Tech.Conf.miaSettings.miaOn then _Draw:Missing(unit, i) end
+
+        _Draw:EnemyTarget(unit, i)
     end
 
     _Draw:JungleTimers()
@@ -258,6 +265,22 @@ function _Tech:LoadMenu()
         end
     else
         self.Conf.ArrowSettings:addParam("extraInfo", "No enemies found.", 5, "")
+    end
+
+    self.Conf:addSubMenu("> Enemy targeting", "TargetSettings")
+    self.Conf.TargetSettings:addParam("extraInfo", "This will draw a line from the enemy", 5, "")
+    self.Conf.TargetSettings:addParam("extraInfo", "to the enemy target. This is usefull", 5, "")
+    self.Conf.TargetSettings:addParam("extraInfo", "to deny their last hitting or check", 5, "")
+    self.Conf.TargetSettings:addParam("extraInfo", "Who they're focussing.", 5, "")
+    self.Conf.TargetSettings:addParam("Info", "_____________________", 5, "")
+    if enemyCount > 0 then
+        self.Conf.TargetSettings:addParam("Info", "Champions:", 5, "")
+        for i = 1, enemyCount do
+            local unit = enemyHeroes[i]
+            self.Conf.TargetSettings:addParam("Show" .. unit.charName, "Show for " .. unit.charName, SCRIPT_PARAM_ONOFF, false)
+        end
+    else
+        self.Conf.TargetSettings:addParam("extraInfo", "No enemies found.", 5, "")
     end
 
     self.Conf:addSubMenu("> Missing in action", "miaSettings")
@@ -457,7 +480,7 @@ end
 function _Tech:AddWards(Obj)
     if Obj and Obj.valid and Obj.name then
         if Obj.team == TEAM_ENEMY and(Obj.name == "SightWard" or Obj.name == "VisionWard" or Obj.name == "YellowTrinket" or Obj.name:find("Trinket")) and Obj.maxMana >= 60 and Obj.mana > 5 then
-            sightWards[#sightWards + 1] = { Pos = Obj.pos, Time = ceil(Obj.mana + GetGameTimer()), obj = Obj }
+            sightWards[#sightWards + 1] = { Pos = Obj.pos, Time = ceil(Obj.mana + GetInGameTimer()), obj = Obj }
         elseif Obj.team == TEAM_ENEMY and Obj.name == "VisionWard" then
             visionWards[#visionWards + 1] = { Pos = Obj.pos, obj = Obj }
         end
@@ -748,13 +771,13 @@ function _Draw:Wards()
     local function DrawSightWards(ward)
 
         if ward == nil or not ward.obj.valid then return end
-        if ward.obj.health > 5 or ward.obj.health <= 0 then return end
+        if ward.obj.health > 5 or ward.obj.health <= 0 or ward.Time < 0 then return end
 
         local screenPos = WorldToScreen(ward.Pos)
         if OnScreen(screenPos, screenPos) then
             _Tech:DrawCircle3D(ward.Pos.x, ward.Pos.y, ward.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
             DrawText("Sight ward", 12, screenPos.x - 25, screenPos.y, 0xFFFFFFFF)
-            DrawText("" .. ceil(ward.Time - GetGameTimer()), 12, screenPos.x - 10, screenPos.y + 10, 0xFFFFFFFF)
+            DrawText("" .. ceil(ward.Time - GetInGameTimer()), 12, screenPos.x - 10, screenPos.y + 10, 0xFFFFFFFF)
         end
         frameSprites[8]:Draw(GetMinimapX(ward.Pos.x) -5, GetMinimapY(ward.Pos.z) -6, 255)
     end
@@ -779,16 +802,6 @@ function _Draw:Wards()
         DrawVisionWard(visionWards[i])
     end
 end
-
-
--- We use this in the "ArrowInfo" function.
-local colorTable = {
-    [1] = 0x90ECFF00,
-    [2] = 0x9000FBE9,
-    [3] = 0x90FF6F00,
-    [4] = 0x90C008FB,
-    [5] = 0x90FFFFFF
-}
 
 function _Draw:ArrowInfo(unit, i)
     local function GetDisTime(unit)
@@ -848,7 +861,7 @@ function _Draw:Missing(unit, i)
         if heroSprites[currentID] ~= nil then
             local miniMapX, miniMapY = GetMinimapX(unit.pos.x), GetMinimapY(unit.pos.z)
             if miaTable[unitID].mia == false then
-                miaTable[unitID].lastSeen = GetGameTimer()
+                miaTable[unitID].lastSeen = GetInGameTimer()
                 miaTable[unitID].mia = true
             end
 
@@ -856,7 +869,7 @@ function _Draw:Missing(unit, i)
             heroSprites[currentID]:Draw((miniMapX - 16),(miniMapY - 11), 255)
 
             if _Tech.Conf.miaSettings.miaTimeOn then
-                DrawText("" .. ceil(GetGameTimer() - miaTable[unitID].lastSeen), 14,(miniMapX - 10),(miniMapY - 5), 0xFFFFFF00)
+                DrawText("" .. ceil(GetInGameTimer() - miaTable[unitID].lastSeen), 14,(miniMapX - 10),(miniMapY - 5), 0xFFFFFF00)
             end
         end
     elseif unit.visible and miaTable[unitID].mia then
@@ -865,25 +878,41 @@ function _Draw:Missing(unit, i)
 end
 
 function _Draw:JungleTimers()
-    local GameTime = floor(GetInGameTimer())
+    local GameTime = GetInGameTimer()
 
     if _Tech.Conf.JungleSettings.BarOn then
         if GameTime < JungleTroys.Baron.startTime then
-            JungleTroys.Baron.currentTime = floor(JungleTroys.Baron.startTime - GameTime)
+            JungleTroys.Baron.currentTime = ceil(JungleTroys.Baron.startTime - GameTime)
             DrawText("" .. JungleTroys.Baron.currentTime , 11, JungleTroys.Baron.minimapX, JungleTroys.Baron.minimapY, 0xFFFFFFFF)
         elseif JungleTroys.Baron.currentTime > GameTime then
-            local displayCount = floor(GameTime - JungleTroys.Baron.currentTime)
+            local displayCount = ceil(GameTime - JungleTroys.Baron.currentTime)
             DrawText("" .. displayCount , 11, JungleTroys.Baron.minimapX, JungleTroys.Baron.minimapY, 0xFFFFFFFF)
         end
     end
 
     if _Tech.Conf.JungleSettings.DragOn then
         if GameTime < JungleTroys.Dragon.startTime then
-            JungleTroys.Dragon.currentTime = floor(JungleTroys.Dragon.startTime - GameTime)
+            JungleTroys.Dragon.currentTime = ceil(JungleTroys.Dragon.startTime - GameTime)
             DrawText("" .. JungleTroys.Dragon.currentTime , 11, JungleTroys.Dragon.minimapX, JungleTroys.Dragon.minimapY, 0xFFFFFFFF)
         elseif JungleTroys.Dragon.currentTime > GameTime then
-            local displayCount = floor(GameTime - JungleTroys.Dragon.currentTime)
+            local displayCount = ceil(GameTime - JungleTroys.Dragon.currentTime)
             DrawText("" .. displayCount , 11, JungleTroys.Dragon.minimapX, JungleTroys.Dragon.minimapY, 0xFFFFFFFF)
+        end
+    end
+end
+
+function _Draw:EnemyTarget(unit, i)
+    if not unit.valid or unit.dead or not unit.visible then return end
+
+    if _Tech.Conf.TargetSettings["Show" .. unit.charName] and unit.spell then
+        local unitTarget = unit.spell.target
+
+        if unitTarget ~= nil then
+            local endDrawPos = WorldToScreen(unitTarget.pos)
+            if OnScreen(endDrawPos.x, endDrawPos.y) then
+                DrawLine3D(unit.pos.x, unit.pos.y, unit.pos.z, unitTarget.pos.x, unitTarget.pos.y, unitTarget.pos.z, 2, colorTable[i])
+                _Tech:DrawCircle3D(unitTarget.pos.x, unitTarget.pos.y, unitTarget.pos.z, 60, 2, colorTable[i], 8)
+            end
         end
     end
 end
