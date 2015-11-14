@@ -269,7 +269,7 @@ function _Tech:LoadMenu()
 
     self.Conf:addSubMenu("> Enemy targeting", "TargetSettings")
     self.Conf.TargetSettings:addParam("extraInfo", "This will draw a line from the enemy", 5, "")
-    self.Conf.TargetSettings:addParam("extraInfo", "to the enemy target. This is usefull", 5, "")
+    self.Conf.TargetSettings:addParam("extraInfo", "to the enemy target. This is useful", 5, "")
     self.Conf.TargetSettings:addParam("extraInfo", "to deny their last hitting or check", 5, "")
     self.Conf.TargetSettings:addParam("extraInfo", "Who they're focussing.", 5, "")
     self.Conf.TargetSettings:addParam("Info", "_____________________", 5, "")
