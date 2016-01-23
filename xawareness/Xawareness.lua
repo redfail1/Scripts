@@ -8,19 +8,14 @@
 
 -- Scriptstatus
 assert(load(Base64Decode("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"), nil, "bt", _ENV))() ScriptStatus("OBEEBEJBGFG")
-
-local scriptVersion = 1.134
-local enemyHeroes = { }
-local allyHeroes = { }
+local scriptVersion = 1.14
+local enemyHeroes, allyHeroes = { }, { }
 local towers = { }
 local enemyCount
 local allyCount
 local towerCount
-local heroSprites = { }
-local summonerSprites = { }
-local frameSprites = { }
-local sightWards = { }
-local visionWards = { }
+local heroSprites, summonerSprites, frameSprites = { }, { }, { }
+local pinkWardTable, greenWardTable = { }, { }
 local updated = false
 local loadedChamps = false
 local colorTable = { [1] = 0x90ECFF00, [2] = 0x9000FBE9, [3] = 0x90FF6F00, [4] = 0x90C008FB, [5] = 0x90FFFFFF }
@@ -478,33 +473,43 @@ function _Tech:AddTurrets()
 end
 
 function _Tech:AddWards(Obj)
-    if Obj and Obj.valid and Obj.name then
-        if Obj.team == TEAM_ENEMY and(Obj.name == "SightWard" or Obj.name == "VisionWard" or Obj.name == "YellowTrinket" or Obj.name:find("Trinket")) and Obj.maxMana >= 60 and Obj.mana > 5 then
-            sightWards[#sightWards + 1] = { Pos = Obj.pos, Time = ceil(Obj.mana + GetInGameTimer()), obj = Obj }
-        elseif Obj.team == TEAM_ENEMY and Obj.name == "VisionWard" then
-            visionWards[#visionWards + 1] = { Pos = Obj.pos, obj = Obj }
+    local function GetCorrectTimer(obj)
+         DelayAction( function() 
+            if obj and obj.valid and obj.name then 
+                table.insert(greenWardTable, { position = obj.pos, endTime = ceil(obj.mana + GetInGameTimer() - 4), object = obj })
+            end
+        end, 5.00)
+    end
+
+    if Obj and Obj.valid and Obj.type and Obj.name then
+        if Obj.team ~= myHero.team then
+            if Obj.mana and Obj.maxMana then
+                if Obj.name == "VisionWard" and Obj.maxMana == 0 then
+                    table.insert(pinkWardTable, Obj) -- Adding a pinkward into the table.
+                elseif Obj.name ~= "WardCorpse" and Obj.name:lower():find("ward") and not Obj.name:lower():find("warddeath") then
+                    GetCorrectTimer(Obj)
+                end
+            end
         end
     end
 end
 
 function _Tech:DeleteWard(Obj)
-    if Obj and Obj.valid and Obj.name then
-        if Obj.team == TEAM_ENEMY and((Obj.name:find("ward") or Obj.name:find("Trinket")) and not Obj.name:find("Idle")) then
-            if (Obj.name:find("Sight") or Obj.name:find("Trinket")) or(Obj.name:find("Vision") and Obj.maxMana == 180) then
-                for i = 1, #sightWards do
-                    local ward = sightWards[i]
-                    if ward and ward.obj.valid and Obj == ward.obj then
-                        sightWards[i] = nil
-                    end
+    if Obj and Obj.name then
+        if Obj.team ~= myHero.team and ((Obj.name:lower():find("ward") or Obj.name:lower():find("Trinket")) and not Obj.name:lower():find("Idle")) and Obj.maxMana > 0 then
+            for i = 1, #greenWardTable do
+                local ward = greenWardTable[i]
+                if ward and ward.obj and Obj.networkID == ward.object.networkID then
+                    table.remove(greenWardTable, i)
                 end
             end
-        elseif Obj.team == TEAM_ENEMY and Obj.name:find("Vision") then
-            for i = 1, #visionWards do
-                local ward = visionWards[i]
-                if ward and ward.obj.valid and Obj == ward.obj then
-                    visionWards[i] = nil
+        elseif Obj.name:lower():find("Vision") and Obj.team ~= myHero.team then
+            for i = 1, #pinkWardTable do
+                local ward = pinkWardTable[i]
+                if ward and Obj.networkID == ward.networkID then
+                     table.remove(pinkWardTable, i)
                 end
-            end
+           end
         end
     end
 end
@@ -768,38 +773,38 @@ function _Draw:TurretRange()
 end
 
 function _Draw:Wards()
-    local function DrawSightWards(ward)
-
-        if ward == nil or not ward.obj.valid then return end
-        if ward.obj.health > 5 or ward.obj.health <= 0 or ward.Time < 0 then return end
-
-        local screenPos = WorldToScreen(ward.Pos)
-        if OnScreen(screenPos, screenPos) then
-            _Tech:DrawCircle3D(ward.Pos.x, ward.Pos.y, ward.Pos.z, 75, 2, 0xFF00FF00, _Tech.Conf.enemyWards.wardQual)
-            DrawText("Sight ward", 12, screenPos.x - 25, screenPos.y, 0xFFFFFFFF)
-            DrawText("" .. ceil(ward.Time - GetInGameTimer()), 12, screenPos.x - 10, screenPos.y + 10, 0xFFFFFFFF)
+    local function DrawPinkWard(ward)
+        if ward ~= nil and ward.object == nil and ward.health > 0 then
+            if ward.maxMana == 0 then -- Pink ward
+                local screenPos = WorldToScreen(ward.pos)
+                if OnScreen(screenPos, screenPos) then
+                    _Tech:DrawCircle3D(ward.pos.x, ward.pos.y, ward.pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
+                    DrawText("Vision ward", 12, screenPos.x - 25, screenPos.y, 0xFFFFFFFF)
+                end
+            end
+            frameSprites[8]:Draw(GetMinimapX(ward.pos.x) -8, GetMinimapY(ward.pos.z) -4, 255)
         end
-        frameSprites[8]:Draw(GetMinimapX(ward.Pos.x) -5, GetMinimapY(ward.Pos.z) -6, 255)
     end
 
-    local function DrawVisionWard(ward)
-        if ward == nil or not ward.obj.valid then return end
-        if ward.obj.health > 5 or ward.obj.health <= 0 then return end
+    local function DrawGreenWard(ward)
+         if ward ~= nil and ward.object.health > 0 and ward.endTime >= GetInGameTimer() then
+            local screenPos = WorldToScreen(ward.position)
+            if OnScreen(screenPos, screenPos) then
+                _Tech:DrawCircle3D(ward.position.x, ward.position.y, ward.position.z, 75, 2, 0xFF178217, _Tech.Conf.enemyWards.wardQual)
 
-        local screenPos = WorldToScreen(ward.Pos)
-        if OnScreen(screenPos, screenPos) then
-            _Tech:DrawCircle3D(ward.Pos.x, ward.Pos.y, ward.Pos.z, 75, 2, 0xFFFF00FF, _Tech.Conf.enemyWards.wardQual)
-            DrawText("Vision ward", 12, screenPos.x - 25, screenPos.y, 0xFFFFFFFF)
+                DrawText("Sight Ward", 12, screenPos.x - 25, screenPos.y, 0xFFFFFFFF)
+                DrawText("" .. ceil(ward.endTime - GetInGameTimer()), 12, screenPos.x - 10, screenPos.y + 10, 0xFFFFFFFF)
+            end
+            frameSprites[9]:Draw(GetMinimapX(ward.position.x) -8, GetMinimapY(ward.position.z) -4, 255)
         end
-        frameSprites[9]:Draw(GetMinimapX(ward.Pos.x) -8, GetMinimapY(ward.Pos.z) -4, 255)
     end
 
-    for i = 1, #sightWards do
-        DrawSightWards(sightWards[i])
+    for i = 1, #pinkWardTable do
+        DrawPinkWard(pinkWardTable[i])
     end
 
-    for i = 1, #visionWards do
-        DrawVisionWard(visionWards[i])
+    for i = 1, #greenWardTable do
+        DrawGreenWard(greenWardTable[i])
     end
 end
 
@@ -910,8 +915,10 @@ function _Draw:EnemyTarget(unit, i)
         if unitTarget ~= nil then
             local endDrawPos = WorldToScreen(unitTarget.pos)
             if OnScreen(endDrawPos.x, endDrawPos.y) then
-                DrawLine3D(unit.pos.x, unit.pos.y, unit.pos.z, unitTarget.pos.x, unitTarget.pos.y, unitTarget.pos.z, 2, colorTable[i])
-                _Tech:DrawCircle3D(unitTarget.pos.x, unitTarget.pos.y, unitTarget.pos.z, 60, 2, colorTable[i], 8)
+                local targetPos = unitTarget.pos
+
+                _Tech:DrawCircle3D(targetPos.x, targetPos.y, targetPos.z, 60, 2, colorTable[i], 4)
+                DrawLine3D(unit.pos.x, unit.pos.y, unit.pos.z, targetPos.x, targetPos.y, targetPos.z, 2, colorTable[i])
             end
         end
     end
